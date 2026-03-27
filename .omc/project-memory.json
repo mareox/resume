@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1774323397599,
+  "lastScanned": 1774600412035,
   "projectRoot": "/home/mareox/GIT/resume",
   "techStack": {
     "languages": [],
@@ -38,7 +38,7 @@
       "path": "static",
       "purpose": "Static files",
       "fileCount": 4,
-      "lastAccessed": 1774323397596,
+      "lastAccessed": 1774600412031,
       "keyFiles": [
         "Mario_Sanchez_Resume.pdf",
         "apple-touch-icon.png",
@@ -47,6 +47,19 @@
       ]
     }
   },
-  "hotPaths": [],
+  "hotPaths": [
+    {
+      "path": "CLAUDE.md",
+      "accessCount": 1,
+      "lastAccessed": 1774600442332,
+      "type": "file"
+    },
+    {
+      "path": "index.html",
+      "accessCount": 1,
+      "lastAccessed": 1774600442337,
+      "type": "file"
+    }
+  ],
   "userDirectives": []
 }
