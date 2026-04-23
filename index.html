@@ -788,9 +788,9 @@
       <ul class="nav-links" role="navigation">
         <li><a href="#about">About</a></li>
         <li><a href="#ai">AI Engineering</a></li>
+        <li><a href="#projects">Projects</a></li>
         <li><a href="#experience">Experience</a></li>
         <li><a href="#skills">Skills</a></li>
-        <li><a href="#projects">Projects</a></li>
         <li><a href="#certifications">Certs</a></li>
       </ul>
     </div>
@@ -799,13 +799,15 @@
   <!-- ── Hero ────────────────────────────────── -->
   <section id="hero">
     <div class="hero-content">
-      <p class="hero-greeting hero-anim">// Senior Network Security Engineer</p>
+      <p class="hero-greeting hero-anim">// hello, world</p>
       <h1 class="hero-name hero-anim">Mario Sanchez</h1>
-      <p class="hero-title hero-anim">Enterprise Security &amp; <strong>AI-Enhanced Engineering</strong> at Palo Alto Networks</p>
+      <p class="hero-title hero-anim">Senior Security Engineer at <strong>Palo Alto Networks</strong>. AI builder. Compulsive automator.</p>
       <p class="hero-tagline hero-anim">
-        Dedicated technical advisor for one of PANW's largest global SASE deployments.
-        8+ years combining deep PAN-OS and Prisma Access expertise with hands-on Python automation
-        and AI-enhanced engineering workflows to protect 100,000+ users across 34 regions.
+        8+ years at Palo Alto Networks. Currently the dedicated technical advisor for one
+        of PANW's largest global SASE deployments: 100,000+ users, 34 regions, three clouds.
+        I write Python that turns 35-hour manual processes into one-minute scripts, build AI
+        workflows my management asked to roll out company-wide, and maintain a 50-service
+        homelab because apparently I don't have enough infrastructure at work.
       </p>
       <div class="hero-actions hero-anim">
         <a href="Mario-Sanchez-resume.pdf" class="btn btn-primary" download>
@@ -867,16 +869,17 @@
   <!-- ── AI-Enhanced Engineering ──────────────── -->
   <section id="ai" class="reveal">
     <p class="section-label">// AI-Enhanced Engineering</p>
-    <h2 class="section-title">Pioneering AI in Security Operations</h2>
+    <h2 class="section-title">AI as a Daily Driver</h2>
 
     <div class="ai-pillars">
       <div class="ai-card">
         <div class="ai-card-icon" aria-hidden="true">&#x25B8;</div>
         <h3>Applied AI Workflows</h3>
         <p>
-          Built and documented AI-enhanced engineering workflows using LLM tools
-          that measurably accelerate security operations — from automated analysis
-          to intelligent documentation generation.
+          I use Claude and Gemini as daily engineering tools, not conference demos.
+          Automated analysis, intelligent documentation, code reviews that actually
+          catch things. Management saw the results and asked me to teach the rest
+          of the company.
         </p>
         <span class="highlight">5-10 hrs/week saved</span>
         <ul>
@@ -890,8 +893,10 @@
         <div class="ai-card-icon" aria-hidden="true">&#x25C6;</div>
         <h3>AI Security Research</h3>
         <p>
-          Active research in LLM security, covering threat modeling, vulnerability
-          assessment, and defensive strategies for AI-integrated systems.
+          If we're deploying AI in production, we need to know how it breaks.
+          I research LLM vulnerabilities, test prompt injection defenses, and run
+          a local inference lab on Proxmox because some things you need to break
+          yourself to understand.
         </p>
         <span class="highlight">OWASP LLM Top 10</span>
         <ul>
@@ -905,15 +910,82 @@
         <div class="ai-card-icon" aria-hidden="true">&#x25B2;</div>
         <h3>AI-Powered Diagnostic Tools</h3>
         <p>
-          Purpose-built tools that combine domain expertise with AI capabilities
-          to accelerate troubleshooting and analysis workflows.
+          I kept solving the same problems manually, so I built tools to stop
+          doing that. Real diagnostic utilities for real workflows, not
+          proof-of-concept demos.
         </p>
         <span class="highlight">Production tooling</span>
         <ul>
-          <li>GlobalProtect log analyzer — automated pattern detection</li>
-          <li>PCAP analyzer — AI-assisted packet capture analysis</li>
+          <li>GlobalProtect log analyzer with automated pattern detection</li>
+          <li>PCAP analyzer for AI-assisted packet capture analysis</li>
           <li>AI agent pipelines for infrastructure monitoring</li>
         </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Projects ────────────────────────────── -->
+  <section id="projects" class="reveal">
+    <p class="section-label">// Projects</p>
+    <h2 class="section-title">What I Build</h2>
+
+    <div class="projects-grid">
+      <div class="project-card">
+        <div class="project-header">
+          <h3>AI-Integrated Security Lab</h3>
+          <span class="project-date">2023 — Present</span>
+        </div>
+        <p>
+          50+ service security research environment across a 4-node Proxmox cluster
+          with PA-440 NGFW (PAN-OS 11.2) and defense-in-depth across 6 VLANs.
+          Local LLM inference, AI agent pipelines, OWASP Top 10 LLM threat testing.
+          Ansible-driven IaC, Docker orchestration, Semaphore CI/CD, centralized
+          SIEM (Graylog + OpenSearch), XDR (Wazuh), and Prometheus/Grafana observability.
+        </p>
+        <a href="https://mareox.github.io/homelab-journal/" class="project-link" target="_blank" rel="noopener">
+          Read the build logs →
+        </a>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <h3>Prisma Access DNS Automation</h3>
+          <span class="project-date">2025</span>
+        </div>
+        <p>
+          Python automation for DNS config management across 18 global Prisma Access
+          regions, 150 internal domains simultaneously. Reduced deployment from
+          25-35 hours to under 1 minute (99.9% reduction), eliminating 2,700+
+          manual entries.
+        </p>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <h3>SCM Address Group Converter</h3>
+          <span class="project-date">2025</span>
+        </div>
+        <p>
+          Enterprise Python tool using Strata Cloud Manager SDK to convert static
+          address groups to dynamic tag-based groups at scale. OAuth 2.0 auth,
+          intelligent batch processing (200-400 objects/min), comprehensive
+          backup/rollback, exponential backoff retry logic.
+        </p>
+        <a href="https://github.com/mareox/panw-script_group-addr-static-to-dynamic" class="project-link" target="_blank" rel="noopener">
+          View on GitHub →
+        </a>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <h3>Troubleshooting Tools</h3>
+          <span class="project-date">2025</span>
+        </div>
+        <p>
+          AI-powered diagnostic utilities including a GlobalProtect log analyzer
+          for automated pattern detection and a PCAP analyzer for AI-assisted
+          packet capture analysis. Built to accelerate security troubleshooting workflows.
+        </p>
       </div>
     </div>
   </section>
@@ -1053,72 +1125,6 @@
     </div>
   </section>
 
-  <!-- ── Projects ────────────────────────────── -->
-  <section id="projects" class="reveal">
-    <p class="section-label">// Projects</p>
-    <h2 class="section-title">What I Build</h2>
-
-    <div class="projects-grid">
-      <div class="project-card">
-        <div class="project-header">
-          <h3>AI-Integrated Security Lab</h3>
-          <span class="project-date">2023 — Present</span>
-        </div>
-        <p>
-          50+ service security research environment across a 4-node Proxmox cluster
-          with PA-440 NGFW (PAN-OS 11.2) and defense-in-depth across 6 VLANs.
-          Local LLM inference, AI agent pipelines, OWASP Top 10 LLM threat testing.
-          Ansible-driven IaC, Docker orchestration, Semaphore CI/CD, centralized
-          SIEM (Graylog + OpenSearch), XDR (Wazuh), and Prometheus/Grafana observability.
-        </p>
-        <a href="https://mareox.github.io/homelab-journal/" class="project-link" target="_blank" rel="noopener">
-          Read the build logs →
-        </a>
-      </div>
-
-      <div class="project-card">
-        <div class="project-header">
-          <h3>Prisma Access DNS Automation</h3>
-          <span class="project-date">2025</span>
-        </div>
-        <p>
-          Python automation for DNS config management across 18 global Prisma Access
-          regions — 150 internal domains simultaneously. Reduced deployment from
-          25-35 hours to under 1 minute (99.9% reduction), eliminating 2,700+
-          manual entries.
-        </p>
-      </div>
-
-      <div class="project-card">
-        <div class="project-header">
-          <h3>SCM Address Group Converter</h3>
-          <span class="project-date">2025</span>
-        </div>
-        <p>
-          Enterprise Python tool using Strata Cloud Manager SDK to convert static
-          address groups to dynamic tag-based groups at scale. OAuth 2.0 auth,
-          intelligent batch processing (200-400 objects/min), comprehensive
-          backup/rollback, exponential backoff retry logic.
-        </p>
-        <a href="https://github.com/mareox/panw-script_group-addr-static-to-dynamic" class="project-link" target="_blank" rel="noopener">
-          View on GitHub →
-        </a>
-      </div>
-
-      <div class="project-card">
-        <div class="project-header">
-          <h3>Troubleshooting Tools</h3>
-          <span class="project-date">2025</span>
-        </div>
-        <p>
-          AI-powered diagnostic utilities including a GlobalProtect log analyzer
-          for automated pattern detection and a PCAP analyzer for AI-assisted
-          packet capture analysis. Built to accelerate security troubleshooting workflows.
-        </p>
-      </div>
-    </div>
-  </section>
-
   <!-- ── Certifications ──────────────────────── -->
   <section id="certifications" class="reveal">
     <p class="section-label">// Certifications</p>
@@ -1155,8 +1161,8 @@
   <footer>
     <div class="footer-inner">
       <div class="footer-left">
-        <p>Mario Sanchez — Senior Network Security Engineer</p>
-        <p>Palo Alto Networks</p>
+        <p>Mario Sanchez · Senior Network Security Engineer · Palo Alto Networks</p>
+        <p style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">// hand-crafted HTML · no frameworks were harmed in the making of this resume</p>
       </div>
       <ul class="footer-links">
         <li><a href="https://www.linkedin.com/in/mareox/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</a></li>
@@ -1169,6 +1175,10 @@
 
   <!-- ── JavaScript ──────────────────────────── -->
   <script>
+    // Easter egg for devs who inspect
+    console.log('%cmario@security:~$ whoami', 'font-family: monospace; color: #3dff8b; font-size: 14px;');
+    console.log('%cSingle HTML file. No frameworks. No build step.\nHiring? Let\'s talk → linkedin.com/in/mareox', 'color: #8b9fc2;');
+
     // Nav scroll shadow
     const navbar = document.getElementById('navbar');
     window.addEventListener('scroll', () => {
