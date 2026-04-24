@@ -13,14 +13,16 @@ Personal CV/resume portfolio site — pure static HTML. Deployed to https://mare
 ## Editing Content
 
 All content lives in `index.html`. Sections in scroll order:
-1. Hero — name, title, value prop, resume download CTA
+1. Hero — `// hello, world`, punchy title, value prop, resume download CTA
 2. About — professional summary with metric cards
-3. AI-Enhanced Engineering — three pillars (workflows, security research, diagnostic tools)
-4. Experience — timeline of PANW career progression
-5. Skills — grouped tag chips (Security, Cloud, Automation, AI/ML, Infrastructure)
-6. Projects — card grid (Homelab, DNS Automation, SCM Converter, Troubleshooting Tools)
+3. AI as a Daily Driver — three pillars (workflows, security research, diagnostic tools)
+4. Projects — card grid (Homelab, DNS Automation, SCM Converter, Troubleshooting Tools)
+5. Experience — timeline of PANW career progression
+6. Skills — grouped tag chips (Security, Cloud, Automation, AI/ML, Infrastructure)
 7. Certifications & Education
-8. Footer — social links, resume download
+8. Footer — social links, resume download, personality line
+
+**Theme:** Dark/light mode with CSS custom properties. Toggle in nav. Preference persisted in localStorage. System `prefers-color-scheme` detected on first visit. No-flash script in `<head>` sets `data-theme` before render.
 
 ## Local Preview
 
