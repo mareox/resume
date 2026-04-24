@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mario Sanchez — Senior Network Security Engineer | Palo Alto Networks</title>
+  <title>Mario Sanchez | Senior Network Security Engineer | Palo Alto Networks</title>
   <meta name="description" content="Senior Network Security Engineer with 15+ years in IT and network security. 8+ years at Palo Alto Networks across SASE, ZTNA, cloud security, and AI-enhanced engineering.">
   <meta name="author" content="Mario Sanchez">
-  <meta property="og:title" content="Mario Sanchez — Senior Network Security Engineer">
+  <meta property="og:title" content="Mario Sanchez | Senior Network Security Engineer">
   <meta property="og:description" content="Enterprise security consulting, AI-enhanced engineering, and hands-on Python automation.">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png">
@@ -15,6 +15,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      var t = localStorage.getItem('theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
   <style>
     /* ── Reset & Base ──────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -678,6 +685,102 @@
 
     .footer-links a:hover { color: var(--accent-red); }
 
+    /* ── Theme Toggle ─────────────────────────── */
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 0.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      margin-left: 0.5rem;
+    }
+
+    .theme-toggle:hover {
+      color: var(--accent-red);
+      border-color: var(--accent-red);
+    }
+
+    .icon-moon { display: none; }
+    .icon-sun { display: block; }
+
+    [data-theme="light"] .icon-moon { display: block; }
+    [data-theme="light"] .icon-sun { display: none; }
+
+    /* ── Light Mode ──────────────────────────── */
+    [data-theme="light"] {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #f1f5f9;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent-red: #d4522a;
+      --accent-red-dim: rgba(212, 82, 42, 0.08);
+      --accent-blue: #2563eb;
+      --accent-blue-dim: rgba(37, 99, 235, 0.08);
+      --accent-green: #16a34a;
+      --accent-green-dim: rgba(22, 163, 74, 0.06);
+      --accent-yellow: #a16207;
+      --accent-purple: #7c3aed;
+      --border-color: #e2e8f0;
+      --border-glow: rgba(212, 82, 42, 0.2);
+    }
+
+    [data-theme="light"] nav {
+      background: rgba(248, 250, 252, 0.92);
+    }
+
+    [data-theme="light"] nav.scrolled {
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    [data-theme="light"] .nav-links.open {
+      background: rgba(248, 250, 252, 0.98);
+    }
+
+    [data-theme="light"] .metric-card:hover,
+    [data-theme="light"] .ai-card:hover,
+    [data-theme="light"] .project-card:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    [data-theme="light"] .btn-primary:hover {
+      box-shadow: 0 4px 16px rgba(212, 82, 42, 0.2);
+    }
+
+    [data-theme="light"] .metric-card,
+    [data-theme="light"] .ai-card,
+    [data-theme="light"] .project-card,
+    [data-theme="light"] .education-item {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+
+    [data-theme="light"] .skill-tag.red {
+      border-color: rgba(212, 82, 42, 0.2);
+    }
+
+    [data-theme="light"] .skill-tag.blue {
+      border-color: rgba(37, 99, 235, 0.2);
+    }
+
+    [data-theme="light"] .skill-tag.green {
+      border-color: rgba(22, 163, 74, 0.15);
+    }
+
+    [data-theme="light"] .skill-tag.purple {
+      border-color: rgba(124, 58, 237, 0.2);
+    }
+
+    [data-theme="light"] .skill-tag.yellow {
+      border-color: rgba(161, 98, 7, 0.15);
+    }
+
     /* ── Responsive ────────────────────────────── */
     @media (max-width: 768px) {
       section { padding: 3.5rem 1.25rem; }
@@ -784,7 +887,13 @@
   <nav id="navbar">
     <div class="nav-inner">
       <div class="nav-brand"><span>mario</span>@security<span>:</span>~$</div>
-      <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
+      <div style="display: flex; align-items: center; gap: 0.25rem;">
+        <button class="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle theme">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
+      </div>
       <ul class="nav-links" role="navigation">
         <li><a href="#about">About</a></li>
         <li><a href="#ai">AI Engineering</a></li>
@@ -1175,6 +1284,15 @@
 
   <!-- ── JavaScript ──────────────────────────── -->
   <script>
+    // Theme toggle
+    const themeToggle = document.querySelector('.theme-toggle');
+    themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+
     // Easter egg for devs who inspect
     console.log('%cmario@security:~$ whoami', 'font-family: monospace; color: #3dff8b; font-size: 14px;');
     console.log('%cSingle HTML file. No frameworks. No build step.\nHiring? Let\'s talk → linkedin.com/in/mareox', 'color: #8b9fc2;');
