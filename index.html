@@ -595,6 +595,24 @@
     .project-link:hover { color: var(--accent-red); }
 
     /* ── Certifications ────────────────────────── */
+    .cert-featured {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-left: 3px solid var(--accent-yellow);
+      border-radius: 6px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .cert-featured .cert-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent-yellow);
+    }
+
     .certs-list { list-style: none; }
 
     .cert-item {
@@ -1243,11 +1261,12 @@
     <p class="section-label"><span style="opacity:0.7;font-size:0.7rem">06</span> Credentials</p>
     <h2 class="section-title">Credentials</h2>
 
+    <div class="cert-featured">
+      <span class="cert-year">2024</span>
+      <span class="cert-name">PCNSE — Palo Alto Networks Certified Network Security Engineer</span>
+    </div>
+
     <ul class="certs-list">
-      <li class="cert-item">
-        <span class="cert-year">2024</span>
-        <span class="cert-name"><span class="cert-highlight">PCNSE</span> — Palo Alto Networks Certified Network Security Engineer (originally 2019)</span>
-      </li>
       <li class="cert-item">
         <span class="cert-year">2018</span>
         <span class="cert-name">CCNA CyberOps</span>
