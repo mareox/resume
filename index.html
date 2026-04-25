@@ -518,34 +518,16 @@
       transition: all 0.2s;
     }
 
-    .skill-tag.red {
+    .skill-tag.primary {
       background: var(--accent-red-dim);
       color: var(--accent-red);
-      border: 1px solid rgba(255, 107, 61, 0.25);
+      border: 1px solid rgba(0, 192, 232, 0.2);
     }
 
-    .skill-tag.blue {
-      background: var(--accent-blue-dim);
-      color: var(--accent-blue);
-      border: 1px solid rgba(61, 139, 255, 0.25);
-    }
-
-    .skill-tag.green {
-      background: var(--accent-green-dim);
-      color: var(--accent-green);
-      border: 1px solid rgba(61, 255, 139, 0.2);
-    }
-
-    .skill-tag.purple {
-      background: rgba(168, 123, 255, 0.12);
-      color: var(--accent-purple);
-      border: 1px solid rgba(168, 123, 255, 0.25);
-    }
-
-    .skill-tag.yellow {
-      background: rgba(255, 201, 61, 0.1);
-      color: var(--accent-yellow);
-      border: 1px solid rgba(255, 201, 61, 0.2);
+    .skill-tag.secondary {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
     }
 
     .skill-tag:hover { transform: translateY(-1px); }
@@ -780,26 +762,6 @@
     [data-theme="light"] .project-card,
     [data-theme="light"] .education-item {
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    }
-
-    [data-theme="light"] .skill-tag.red {
-      border-color: rgba(212, 82, 42, 0.2);
-    }
-
-    [data-theme="light"] .skill-tag.blue {
-      border-color: rgba(37, 99, 235, 0.2);
-    }
-
-    [data-theme="light"] .skill-tag.green {
-      border-color: rgba(22, 163, 74, 0.15);
-    }
-
-    [data-theme="light"] .skill-tag.purple {
-      border-color: rgba(124, 58, 237, 0.2);
-    }
-
-    [data-theme="light"] .skill-tag.yellow {
-      border-color: rgba(161, 98, 7, 0.15);
     }
 
     /* ── Responsive ────────────────────────────── */
@@ -1222,55 +1184,55 @@
       <div class="skill-group">
         <h3>Security &amp; Networking</h3>
         <div class="skill-tags">
-          <span class="skill-tag red">Prisma Access (SASE/SSE)</span>
-          <span class="skill-tag red">PAN-OS NGFW</span>
-          <span class="skill-tag red">Panorama</span>
-          <span class="skill-tag red">GlobalProtect / ZTNA 2.0</span>
-          <span class="skill-tag red">Strata Cloud Manager</span>
-          <span class="skill-tag red">Zero Trust Architecture</span>
+          <span class="skill-tag primary">Prisma Access (SASE/SSE)</span>
+          <span class="skill-tag primary">PAN-OS NGFW</span>
+          <span class="skill-tag primary">Panorama</span>
+          <span class="skill-tag primary">GlobalProtect / ZTNA 2.0</span>
+          <span class="skill-tag primary">Strata Cloud Manager</span>
+          <span class="skill-tag primary">Zero Trust Architecture</span>
         </div>
       </div>
 
       <div class="skill-group">
         <h3>Cloud &amp; SASE Infrastructure</h3>
         <div class="skill-tags">
-          <span class="skill-tag yellow">AWS (SASE deployments)</span>
-          <span class="skill-tag yellow">Azure (SASE deployments)</span>
-          <span class="skill-tag yellow">GCP (SASE deployments)</span>
-          <span class="skill-tag yellow">Multi-cloud networking</span>
+          <span class="skill-tag secondary">AWS (SASE deployments)</span>
+          <span class="skill-tag secondary">Azure (SASE deployments)</span>
+          <span class="skill-tag secondary">GCP (SASE deployments)</span>
+          <span class="skill-tag secondary">Multi-cloud networking</span>
         </div>
       </div>
 
       <div class="skill-group">
         <h3>Automation &amp; Development</h3>
         <div class="skill-tags">
-          <span class="skill-tag green">Python (PAN-OS SDK, SCM SDK)</span>
-          <span class="skill-tag green">Ansible / Docker Compose</span>
-          <span class="skill-tag green">REST API Automation</span>
-          <span class="skill-tag green">OAuth 2.0</span>
-          <span class="skill-tag green">CI/CD (Semaphore)</span>
+          <span class="skill-tag primary">Python (PAN-OS SDK, SCM SDK)</span>
+          <span class="skill-tag secondary">Ansible / Docker Compose</span>
+          <span class="skill-tag secondary">REST API Automation</span>
+          <span class="skill-tag secondary">OAuth 2.0</span>
+          <span class="skill-tag secondary">CI/CD (Semaphore)</span>
         </div>
       </div>
 
       <div class="skill-group">
         <h3>AI/ML Security &amp; Automation</h3>
         <div class="skill-tags">
-          <span class="skill-tag purple">LLM Security (OWASP Top 10)</span>
-          <span class="skill-tag purple">Prompt Injection / Data Leakage</span>
-          <span class="skill-tag purple">LLM Inference (Ollama/PyTorch)</span>
-          <span class="skill-tag purple">AI Agent Workflows</span>
-          <span class="skill-tag purple">AI Security Risk Assessment</span>
+          <span class="skill-tag primary">LLM Security (OWASP Top 10)</span>
+          <span class="skill-tag primary">Prompt Injection / Data Leakage</span>
+          <span class="skill-tag secondary">LLM Inference (Ollama/PyTorch)</span>
+          <span class="skill-tag primary">AI Agent Workflows</span>
+          <span class="skill-tag primary">AI Security Risk Assessment</span>
         </div>
       </div>
 
       <div class="skill-group">
         <h3>Infrastructure</h3>
         <div class="skill-tags">
-          <span class="skill-tag blue">Docker / Proxmox / LXC</span>
-          <span class="skill-tag blue">Linux (Debian/Ubuntu)</span>
-          <span class="skill-tag blue">Graylog / OpenSearch</span>
-          <span class="skill-tag blue">Wazuh XDR</span>
-          <span class="skill-tag blue">Prometheus / Grafana</span>
+          <span class="skill-tag secondary">Docker / Proxmox / LXC</span>
+          <span class="skill-tag secondary">Linux (Debian/Ubuntu)</span>
+          <span class="skill-tag secondary">Graylog / OpenSearch</span>
+          <span class="skill-tag secondary">Wazuh XDR</span>
+          <span class="skill-tag secondary">Prometheus / Grafana</span>
         </div>
       </div>
     </div>
