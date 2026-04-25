@@ -423,38 +423,23 @@
     }
 
     /* ── Experience Timeline ───────────────────── */
-    .timeline { position: relative; padding-left: 2rem; }
-
-    .timeline::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: linear-gradient(to bottom, var(--accent-red), var(--accent-blue), var(--accent-green));
-    }
+    .timeline { position: relative; }
 
     .timeline-item {
       position: relative;
       margin-bottom: 3rem;
-      padding-left: 1.5rem;
+      padding-left: 2rem;
+      border-left: 2px solid var(--accent-red);
     }
 
-    .timeline-item::before {
-      content: '';
-      position: absolute;
-      left: -2rem;
-      top: 0.5rem;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      border: 2px solid var(--accent-red);
-      background: var(--bg-primary);
+    .timeline-item.critical {
+      border-left: 3px solid var(--accent-yellow);
     }
 
-    .timeline-item:nth-child(2)::before { border-color: var(--accent-yellow); }
-    .timeline-item:nth-child(3)::before { border-color: var(--accent-blue); }
+    .timeline-item.medium {
+      border-left: 2px solid var(--text-muted);
+      opacity: 0.85;
+    }
 
     .timeline-date {
       font-family: var(--font-mono);
@@ -463,8 +448,8 @@
       margin-bottom: 0.5rem;
     }
 
-    .timeline-item:nth-child(2) .timeline-date { color: var(--accent-yellow); }
-    .timeline-item:nth-child(3) .timeline-date { color: var(--accent-blue); }
+    .timeline-item.critical .timeline-date { color: var(--accent-yellow); }
+    .timeline-item.medium .timeline-date { color: var(--text-muted); }
 
     .timeline-role {
       font-size: 1.15rem;
@@ -496,14 +481,14 @@
     }
 
     .timeline-bullets li::before {
-      content: '▸';
+      content: '\25B8';
       position: absolute;
       left: 0;
       color: var(--accent-red);
     }
 
-    .timeline-item:nth-child(2) .timeline-bullets li::before { color: var(--accent-yellow); }
-    .timeline-item:nth-child(3) .timeline-bullets li::before { color: var(--accent-blue); }
+    .timeline-item.critical .timeline-bullets li::before { color: var(--accent-yellow); }
+    .timeline-item.medium .timeline-bullets li::before { color: var(--text-muted); }
 
     /* ── Skills ────────────────────────────────── */
     .skills-grid {
@@ -845,8 +830,7 @@
 
       .ai-pillars { grid-template-columns: 1fr; }
 
-      .timeline { padding-left: 1.5rem; }
-      .timeline-item { padding-left: 1rem; }
+      .timeline-item { padding-left: 1.25rem; }
 
       .skills-grid { grid-template-columns: 1fr; }
 
@@ -1163,7 +1147,7 @@
     <h2 class="section-title">Career at Palo Alto Networks</h2>
 
     <div class="timeline">
-      <div class="timeline-item">
+      <div class="timeline-item critical">
         <div class="timeline-date">December 2020 — Present</div>
         <h3 class="timeline-role">Extended Expertise Consultant (Professional Services)</h3>
         <p class="timeline-company">Palo Alto Networks — Embedded at Fortune 500 Clients</p>
@@ -1205,7 +1189,7 @@
         </ul>
       </div>
 
-      <div class="timeline-item">
+      <div class="timeline-item medium">
         <div class="timeline-date">March 2015 — July 2017</div>
         <h3 class="timeline-role">Network Support Engineer (Tier 2)</h3>
         <p class="timeline-company">Aeris Communications</p>
@@ -1217,7 +1201,7 @@
         </ul>
       </div>
 
-      <div class="timeline-item">
+      <div class="timeline-item medium">
         <div class="timeline-date">January 2010 — March 2015</div>
         <h3 class="timeline-role">IT Consultant</h3>
         <p class="timeline-company">eFX-Computer</p>
