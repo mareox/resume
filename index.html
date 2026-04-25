@@ -809,17 +809,6 @@
     .hero-anim:nth-child(5) { animation-delay: 400ms; }
     .hero-anim:nth-child(6) { animation-delay: 500ms; }
 
-    .reveal {
-      opacity: 0;
-      transform: translateY(15px);
-      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-    }
-
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
     /* ── Accessibility ────────────────────────── */
     :focus-visible {
       outline: 2px solid var(--accent-blue);
@@ -835,11 +824,6 @@
       }
       .hero-anim {
         opacity: 1;
-      }
-      .reveal {
-        opacity: 1;
-        transform: none;
-        transition: none;
       }
     }
   </style>
@@ -918,7 +902,7 @@
   </div>
 
   <!-- ── About ───────────────────────────────── -->
-  <section id="about" class="reveal">
+  <section id="about">
     <p class="section-label"><span style="opacity:0.7;font-size:0.7rem">01</span> About</p>
     <h2 class="section-title">Professional Summary</h2>
 
@@ -946,7 +930,7 @@
   </section>
 
   <!-- ── AI-Enhanced Engineering ──────────────── -->
-  <section id="ai" class="reveal">
+  <section id="ai">
     <p class="section-label"><span style="opacity:0.7;font-size:0.7rem">02</span> AI Security Engineering</p>
     <h2 class="section-title">AI as a Force Multiplier</h2>
 
@@ -1001,7 +985,7 @@
   </section>
 
   <!-- ── Projects ────────────────────────────── -->
-  <section id="projects" class="reveal">
+  <section id="projects">
     <p class="section-label"><span style="opacity:0.7;font-size:0.7rem">03</span> Projects</p>
     <h2 class="section-title">What I Build</h2>
 
@@ -1067,7 +1051,7 @@
   </section>
 
   <!-- ── Experience ──────────────────────────── -->
-  <section id="experience" class="reveal">
+  <section id="experience">
     <p class="section-label"><span style="opacity:0.7;font-size:0.7rem">04</span> Experience</p>
     <h2 class="section-title">Career at Palo Alto Networks</h2>
 
@@ -1139,7 +1123,7 @@
   </section>
 
   <!-- ── Skills ──────────────────────────────── -->
-  <section id="skills" class="reveal">
+  <section id="skills">
     <p class="section-label"><span style="opacity:0.7;font-size:0.7rem">05</span> Technical Expertise</p>
     <h2 class="section-title">Technical Expertise</h2>
 
@@ -1202,7 +1186,7 @@
   </section>
 
   <!-- ── Certifications ──────────────────────── -->
-  <section id="certifications" class="reveal">
+  <section id="certifications">
     <p class="section-label"><span style="opacity:0.7;font-size:0.7rem">06</span> Credentials</p>
     <h2 class="section-title">Credentials</h2>
 
@@ -1307,20 +1291,6 @@
 
     sections.forEach(section => observer.observe(section));
 
-    // Scroll-triggered reveal animations
-    const revealObserver = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    }, {
-      threshold: 0.1,
-      rootMargin: '0px 0px -40px 0px'
-    });
-
-    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
   </script>
 
 </body>
