@@ -20,3 +20,5 @@ $RECYCLE.BIN/
 *.swp
 *.swo
 .nfs*
+.omc/
+.omx/
