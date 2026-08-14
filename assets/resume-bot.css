@@ -1,0 +1,39 @@
+/* Resume bot: standalone, resume-native styles using the page's existing tokens. */
+#ask-ai { scroll-margin-top: var(--nav-height); }
+.resume-bot-shell { display: grid; gap: 1.25rem; max-width: 880px; }
+.resume-bot-intro { color: var(--text-secondary); max-width: 68ch; }
+.resume-bot-disclosure { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.78rem; }
+.resume-bot-panel { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16); overflow: hidden; }
+.resume-bot-toolbar, .resume-bot-composer, .resume-bot-starters, .resume-bot-sources, .resume-bot-security { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.resume-bot-toolbar { align-items: center; justify-content: space-between; padding: 1rem; border-bottom: 1px solid var(--border-color); }
+.resume-bot-mode-group { display: flex; gap: 0.5rem; }
+.resume-bot-mode, .resume-bot-starter, .resume-bot-button { min-height: 44px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; font: inherit; font-size: 0.88rem; font-weight: 600; padding: 0.55rem 0.8rem; transition: border-color 0.2s, background 0.2s, color 0.2s; }
+.resume-bot-mode[aria-pressed="true"], .resume-bot-button--primary { background: var(--accent-red-dim); border-color: var(--accent-red); color: var(--text-primary); }
+.resume-bot-starter:hover, .resume-bot-mode:hover, .resume-bot-button:hover { border-color: var(--accent-blue); color: var(--text-primary); }
+.resume-bot-mode:focus-visible, .resume-bot-starter:focus-visible, .resume-bot-button:focus-visible, .resume-bot-input:focus-visible, .resume-bot-source:focus-visible { outline: 3px solid var(--accent-yellow); outline-offset: 3px; }
+.resume-bot-transcript { display: grid; gap: 0.75rem; min-height: 128px; max-height: 360px; overflow-y: auto; padding: 1rem; }
+.resume-bot-message { max-width: min(100%, 70ch); border-radius: 10px; padding: 0.75rem 0.9rem; white-space: pre-wrap; }
+.resume-bot-message--assistant { background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); }
+.resume-bot-message--user { background: var(--accent-red-dim); border: 1px solid var(--border-glow); color: var(--text-primary); justify-self: end; }
+.resume-bot-empty { color: var(--text-muted); font-size: 0.9rem; }
+.resume-bot-details { display: grid; gap: 0.75rem; padding: 0 1rem 1rem; }
+.resume-bot-status { color: var(--text-secondary); font-size: 0.85rem; min-height: 1.5rem; }
+.resume-bot-status[data-state="error"] { color: var(--accent-yellow); }
+.resume-bot-source, .resume-bot-security-item { border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.75rem; padding: 0.35rem 0.5rem; }
+.resume-bot-source:hover { color: var(--accent-blue); }
+.resume-bot-security[hidden], .resume-bot-sources:empty { display: none; }
+.resume-bot-turnstile { min-width: 0; }
+.resume-bot-composer { align-items: flex-end; border-top: 1px solid var(--border-color); padding: 1rem; }
+.resume-bot-input-wrap { flex: 1 1 360px; }
+.resume-bot-input-label { color: var(--text-secondary); display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; }
+.resume-bot-input { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font: inherit; min-height: 88px; padding: 0.7rem; resize: vertical; width: 100%; }
+.resume-bot-input::placeholder { color: var(--text-muted); }
+.resume-bot-starters { padding: 1rem; }
+.resume-bot-starter { flex: 1 1 220px; text-align: left; }
+.resume-bot-fallback { color: var(--text-secondary); font-size: 0.88rem; }
+[data-theme="light"] #ask-ai .section-label { color: #00677a; }
+[data-theme="light"] #ask-ai .section-label span { color: #00677a; opacity: 1 !important; }
+[data-theme="light"] .resume-bot-disclosure { color: #59636e; }
+@media (max-width: 768px) { .resume-bot-toolbar, .resume-bot-composer { align-items: stretch; flex-direction: column; } .resume-bot-mode-group, .resume-bot-toolbar > .resume-bot-button { width: 100%; } .resume-bot-mode, .resume-bot-toolbar > .resume-bot-button, .resume-bot-composer > .resume-bot-button { flex: 1; } }
+@media (max-width: 480px) { .resume-bot-starter { flex-basis: 100%; } .resume-bot-message { max-width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .resume-bot-mode, .resume-bot-starter, .resume-bot-button { transition: none; } }

@@ -1,0 +1,95 @@
+const { test, expect } = require('@playwright/test');
+const axePath = require.resolve('axe-core/axe.min.js');
+
+const apiUrl = 'https://resume-bot.mareoxlan.com/api/resume-bot/v1/chat';
+const turnstileUrl = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+
+const sse = (events) => events.map(({ event, data }) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`).join('');
+
+async function installTurnstileStub(page) {
+  await page.route(turnstileUrl, (route) => route.fulfill({
+    contentType: 'application/javascript',
+    body: `window.turnstile={render:function(_,options){window.__resumeBotTurnstile=options;return 7;},execute:function(){window.__resumeBotTurnstile.callback('TEST');},reset:function(){},remove:function(){}};`,
+  }));
+}
+
+async function installApiStub(page, status = 200) {
+  await page.route(apiUrl, (route) => {
+    if (status !== 200) return route.fulfill({ status, contentType: 'application/json', body: '{}' });
+    return route.fulfill({
+      contentType: 'text/event-stream',
+      body: sse([
+        { event: 'meta', data: { trace_id: 'trace', conversation_id: 'conversation', mode: 'career' } },
+        { event: 'security', data: { input: 'allowed', turnstile: 'passed', retrieval: 'public_resume', output: 'passed' } },
+        { event: 'sources', data: { items: [{ id: 'experience', title: 'Experience', url: 'https://mareox.github.io/resume/#experience' }] } },
+        { event: 'delta', data: { text: 'Safe answer: <img src=x onerror=window.__resumeBotXss=true>' } },
+        { event: 'done', data: { grounded: true, source_ids: ['experience'], latency_ms: 12 } },
+      ]),
+    });
+  });
+}
+
+test.beforeEach(async ({ page }) => {
+  await installTurnstileStub(page);
+});
+
+test('starter question streams inert text and a public source card', async ({ page }) => {
+  await installApiStub(page);
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Ask MareoX AI' })).toBeVisible();
+  await page.getByRole('button', { name: 'What AI security work have you done?' }).click();
+  await expect(page.locator('#resume-bot-input')).toHaveValue('What AI security work have you done?');
+  await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect
+    .poll(() => page.evaluate(() => window.__resumeBotTurnstile?.action))
+    .toBe('resume_chat');
+  expect(await page.evaluate(() => window.__resumeBotTurnstile.size)).toBe(
+    page.viewportSize().width <= 480 ? 'compact' : 'flexible',
+  );
+  const answer = page.locator('.resume-bot-message--assistant').last();
+  await expect(answer).toContainText('<img src=x onerror=window.__resumeBotXss=true>');
+  await expect(page.locator('.resume-bot-source')).toHaveAttribute('href', 'https://mareox.github.io/resume/#experience');
+  await expect(page.locator('img')).toHaveCount(0);
+  await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
+});
+
+test('security mode, clear action, theme, reduced motion, and narrow layout work', async ({ page }) => {
+  await installApiStub(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'AI Security Lab' }).click();
+  await expect(page.getByRole('button', { name: 'AI Security Lab' })).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('#resume-bot-input').fill('What AI security work have you done?');
+  await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.locator('#resume-bot-security')).toBeVisible();
+  await page.getByRole('button', { name: 'Clear chat' }).click();
+  await expect(page.locator('#resume-bot-transcript')).toContainText('Ask a question or choose a starter prompt to begin.');
+  await page.locator('.theme-toggle').click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', /dark|light/);
+  expect(await page.locator('#ask-ai').evaluate((section) => section.scrollWidth <= section.clientWidth)).toBeTruthy();
+});
+
+for (const [name, handler] of [
+  ['rate-limit', async (page) => installApiStub(page, 429)],
+  ['unavailable', async (page) => installApiStub(page, 503)],
+  ['network-failure', async (page) => page.route(apiUrl, (route) => route.abort())],
+]) {
+  test(`${name} displays the safe fallback`, async ({ page }) => {
+    await handler(page);
+    await page.goto('/');
+    await page.locator('#resume-bot-input').fill('Question');
+    await page.getByRole('button', { name: 'Ask', exact: true }).click();
+    await expect(page.locator('#resume-bot-status')).toContainText('The assistant is unavailable right now.');
+    await expect(page.getByRole('link', { name: 'download the PDF' })).toHaveAttribute('href', 'static/Mario_Sanchez_Resume.pdf');
+  });
+}
+
+test('widget has no serious or critical accessibility violations', async ({ page }) => {
+  await installApiStub(page);
+  await page.goto('/');
+  await page.addScriptTag({ path: axePath });
+  const results = await page.locator('#ask-ai').evaluate(async () => window.axe.run('#ask-ai'));
+  const significant = results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact));
+  expect(significant).toEqual([]);
+});
