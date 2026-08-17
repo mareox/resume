@@ -12,21 +12,29 @@
     send: document.getElementById('resume-bot-send'), clear: document.getElementById('resume-bot-clear'),
     status: document.getElementById('resume-bot-status'), sources: document.getElementById('resume-bot-sources'),
     securityCard: document.getElementById('resume-bot-security'), turnstile: document.getElementById('resume-bot-turnstile'),
+    open: document.getElementById('resume-bot-open'), launcher: document.getElementById('resume-bot-launcher'),
+    dialog: document.getElementById('resume-bot-dialog'), close: document.getElementById('resume-bot-close'),
+    tour: document.getElementById('resume-bot-tour'), chat: document.getElementById('resume-bot-chat'), tourChat: document.getElementById('resume-bot-tour-chat'),
   };
-  if (Object.values(elements).some((element) => element === null)) return;
+  const tourSteps = Array.from(document.querySelectorAll('[data-resume-bot-tour-step]'));
+  const tourNextButtons = Array.from(document.querySelectorAll('[data-resume-bot-tour-next]'));
+  if (Object.values(elements).some((element) => element === null) || !tourSteps.length || !tourNextButtons.length || typeof elements.dialog.showModal !== 'function') return;
 
   let activeMode = 'career';
   let conversationId = null;
   let controller = null;
   let turnstileWidgetId = null;
+  let activeTourStep = 0;
+  let lastOpener = elements.launcher;
 
   const removeChildren = (element) => { while (element.firstChild) element.removeChild(element.firstChild); };
+  const setSentinelState = (state) => { elements.launcher.dataset.state = state; };
   const setStatus = (text, state = 'idle') => {
     elements.status.textContent = text;
     elements.status.dataset.state = state;
     elements.status.setAttribute('role', state === 'error' ? 'alert' : 'status');
   };
-  const setBusy = (busy) => { elements.send.disabled = busy; elements.input.disabled = busy; elements.clear.disabled = false; };
+  const setBusy = (busy) => { elements.send.disabled = busy; elements.input.disabled = busy; elements.clear.disabled = false; setSentinelState(busy ? 'thinking' : 'ready'); };
   const resetTranscript = () => {
     removeChildren(elements.transcript);
     const empty = document.createElement('p');
@@ -42,6 +50,24 @@
     elements.transcript.appendChild(node);
     elements.transcript.scrollTop = elements.transcript.scrollHeight;
     return node;
+  };
+  const showTourStep = (index) => {
+    activeTourStep = Math.max(0, Math.min(index, tourSteps.length - 1));
+    elements.tour.hidden = false;
+    elements.chat.hidden = true;
+    tourSteps.forEach((step, stepIndex) => { step.hidden = stepIndex !== activeTourStep; });
+  };
+  const openAssistant = (opener) => {
+    lastOpener = opener;
+    showTourStep(0);
+    if (!elements.dialog.open) elements.dialog.showModal();
+    window.requestAnimationFrame(() => tourSteps[0].querySelector('button, a')?.focus());
+  };
+  const closeAssistant = () => { if (elements.dialog.open) elements.dialog.close(); };
+  const openChat = () => {
+    elements.tour.hidden = true;
+    elements.chat.hidden = false;
+    elements.input.focus();
   };
   const setMode = (mode) => {
     activeMode = mode;
@@ -109,7 +135,7 @@
         if (event === 'meta' && typeof data.conversation_id === 'string') conversationId = data.conversation_id;
         if (event === 'security') renderSecurity(data);
         if (event === 'sources') renderSources(data.items);
-        if (event === 'delta' && typeof data.text === 'string') { assistantNode.textContent += data.text; elements.transcript.scrollTop = elements.transcript.scrollHeight; }
+        if (event === 'delta' && typeof data.text === 'string') { setSentinelState('responding'); assistantNode.textContent += data.text; elements.transcript.scrollTop = elements.transcript.scrollHeight; }
         if (event === 'done') receivedDone = true;
       }
       if (done && !receivedDone) throw new Error('Stream ended early');
@@ -145,6 +171,12 @@
   };
   elements.career.addEventListener('click', () => setMode('career'));
   elements.security.addEventListener('click', () => setMode('security_lab'));
+  elements.open.addEventListener('click', (event) => openAssistant(event.currentTarget));
+  elements.launcher.addEventListener('click', (event) => openAssistant(event.currentTarget));
+  elements.close.addEventListener('click', closeAssistant);
+  elements.dialog.addEventListener('close', () => { showTourStep(0); lastOpener?.focus(); });
+  tourNextButtons.forEach((button) => button.addEventListener('click', () => showTourStep(activeTourStep + 1)));
+  elements.tourChat.addEventListener('click', openChat);
   elements.send.addEventListener('click', send);
   elements.clear.addEventListener('click', () => {
     if (controller) controller.abort();
@@ -153,5 +185,5 @@
   });
   document.querySelectorAll('.resume-bot-starter').forEach((button) => button.addEventListener('click', () => { elements.input.value = button.dataset.question || ''; elements.input.focus(); }));
   window.addEventListener('beforeunload', () => controller?.abort());
-  resetTranscript(); setMode('career');
+  resetTranscript(); setMode('career'); setSentinelState('ready'); showTourStep(0);
 })();

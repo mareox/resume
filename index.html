@@ -1229,37 +1229,89 @@
     <div class="resume-bot-shell">
       <p class="resume-bot-intro">Ask about my experience, projects, AI security work, skills, or certifications. Answers use only this public resume.</p>
       <p class="resume-bot-disclosure">Runs on a self-hosted model in my homelab. Verify important details against the resume.</p>
-      <div class="resume-bot-panel">
-        <div class="resume-bot-toolbar">
-          <div class="resume-bot-mode-group" aria-label="Assistant mode">
-            <button id="resume-bot-mode-career" class="resume-bot-mode" type="button" aria-pressed="true">Career Assistant</button>
-            <button id="resume-bot-mode-security" class="resume-bot-mode" type="button" aria-pressed="false">AI Security Lab</button>
+      <button id="resume-bot-open" class="resume-bot-button resume-bot-button--primary" type="button">Open Ask MareoX AI</button>
+      <p class="resume-bot-fallback">Prefer the full resume? Browse the <a href="#experience">career timeline</a> or <a href="static/Mario_Sanchez_Resume.pdf">download the PDF</a>.</p>
+    </div>
+    <noscript><p class="resume-bot-fallback">JavaScript is required for the assistant. You can still browse the <a href="#experience">career timeline</a> or <a href="static/Mario_Sanchez_Resume.pdf">download the PDF</a>.</p></noscript>
+
+    <dialog id="resume-bot-dialog" class="resume-bot-dialog" aria-labelledby="resume-bot-dialog-title" aria-describedby="resume-bot-dialog-disclosure">
+      <div class="resume-bot-dialog-shell">
+        <header class="resume-bot-dialog-header">
+          <div>
+            <p class="resume-bot-dialog-eyebrow">// self-hosted, source-grounded assistant</p>
+            <h3 id="resume-bot-dialog-title">Ask MareoX AI</h3>
+            <p id="resume-bot-dialog-disclosure" class="resume-bot-disclosure">Answers use only this public resume and may be imperfect.</p>
           </div>
-          <button id="resume-bot-clear" class="resume-bot-button" type="button">Clear chat</button>
-        </div>
-        <div id="resume-bot-transcript" class="resume-bot-transcript" role="log" aria-live="polite" aria-label="Resume assistant conversation"></div>
-        <div class="resume-bot-details">
-          <div id="resume-bot-status" class="resume-bot-status" role="status" aria-live="polite"></div>
-          <div id="resume-bot-sources" class="resume-bot-sources" aria-label="Public resume sources"></div>
-          <div id="resume-bot-security" class="resume-bot-security" aria-label="AI security control outcomes" hidden></div>
-          <div id="resume-bot-turnstile" class="resume-bot-turnstile"></div>
-        </div>
-        <div class="resume-bot-composer">
-          <div class="resume-bot-input-wrap">
-            <label class="resume-bot-input-label" for="resume-bot-input">Ask about MareoX's professional background</label>
-            <textarea id="resume-bot-input" class="resume-bot-input" maxlength="500" placeholder="Ask about experience, projects, AI security, or skills…"></textarea>
+          <button id="resume-bot-close" class="resume-bot-close" type="button" aria-label="Close Ask MareoX AI">×</button>
+        </header>
+
+        <section id="resume-bot-tour" class="resume-bot-tour" aria-label="Guided career introduction">
+          <article class="resume-bot-tour-card" data-resume-bot-tour-step>
+            <p class="resume-bot-tour-progress">01 / 03 · Career</p>
+            <h4>Start with the career story</h4>
+            <p>Follow the path from network security foundations to technical leadership at global scale.</p>
+            <a class="resume-bot-tour-source" href="#experience">View career experience</a>
+            <button class="resume-bot-button resume-bot-button--primary" type="button" data-resume-bot-tour-next>Next: AI security</button>
+          </article>
+          <article class="resume-bot-tour-card" data-resume-bot-tour-step hidden>
+            <p class="resume-bot-tour-progress">02 / 03 · AI security</p>
+            <h4>See how AI becomes useful and trustworthy</h4>
+            <p>Explore the practical AI and security work that turns repeated operational work into reliable systems.</p>
+            <a class="resume-bot-tour-source" href="#ai">View AI engineering work</a>
+            <button class="resume-bot-button resume-bot-button--primary" type="button" data-resume-bot-tour-next>Next: automation projects</button>
+          </article>
+          <article class="resume-bot-tour-card" data-resume-bot-tour-step hidden>
+            <p class="resume-bot-tour-progress">03 / 03 · Projects</p>
+            <h4>Connect the story to the systems built</h4>
+            <p>Use the assistant to explore the automation and infrastructure projects behind the resume.</p>
+            <a class="resume-bot-tour-source" href="#projects">View projects</a>
+            <button id="resume-bot-tour-chat" class="resume-bot-button resume-bot-button--primary" type="button">Ask a follow-up</button>
+          </article>
+        </section>
+
+        <div id="resume-bot-chat" hidden>
+          <div class="resume-bot-panel">
+            <div class="resume-bot-toolbar">
+              <div class="resume-bot-mode-group" aria-label="Assistant mode">
+                <button id="resume-bot-mode-career" class="resume-bot-mode" type="button" aria-pressed="true">Career Assistant</button>
+                <button id="resume-bot-mode-security" class="resume-bot-mode" type="button" aria-pressed="false">AI Security Lab</button>
+              </div>
+              <button id="resume-bot-clear" class="resume-bot-button" type="button">Clear chat</button>
+            </div>
+            <div id="resume-bot-transcript" class="resume-bot-transcript" role="log" aria-live="polite" aria-label="Resume assistant conversation"></div>
+            <div class="resume-bot-details">
+              <div id="resume-bot-status" class="resume-bot-status" role="status" aria-live="polite"></div>
+              <div id="resume-bot-sources" class="resume-bot-sources" aria-label="Public resume sources"></div>
+              <div id="resume-bot-security" class="resume-bot-security" aria-label="AI security control outcomes" hidden></div>
+              <div id="resume-bot-turnstile" class="resume-bot-turnstile"></div>
+            </div>
+            <div class="resume-bot-composer">
+              <div class="resume-bot-input-wrap">
+                <label class="resume-bot-input-label" for="resume-bot-input">Ask about MareoX's professional background</label>
+                <textarea id="resume-bot-input" class="resume-bot-input" maxlength="500" placeholder="Ask about experience, projects, AI security, or skills…"></textarea>
+              </div>
+              <button id="resume-bot-send" class="resume-bot-button resume-bot-button--primary" type="button">Ask</button>
+            </div>
+            <div class="resume-bot-starters" aria-label="Starter questions">
+              <button class="resume-bot-starter" type="button" data-question="What problems have you solved with automation?">What problems have you solved with automation?</button>
+              <button class="resume-bot-starter" type="button" data-question="What AI security work have you done?">What AI security work have you done?</button>
+              <button class="resume-bot-starter" type="button" data-question="Which projects best show your infrastructure skills?">Which projects best show your infrastructure skills?</button>
+              <button class="resume-bot-starter" type="button" data-question="What certifications do you hold?">What certifications do you hold?</button>
+            </div>
           </div>
-          <button id="resume-bot-send" class="resume-bot-button resume-bot-button--primary" type="button">Ask</button>
-        </div>
-        <div class="resume-bot-starters" aria-label="Starter questions">
-          <button class="resume-bot-starter" type="button" data-question="What problems have you solved with automation?">What problems have you solved with automation?</button>
-          <button class="resume-bot-starter" type="button" data-question="What AI security work have you done?">What AI security work have you done?</button>
-          <button class="resume-bot-starter" type="button" data-question="Which projects best show your infrastructure skills?">Which projects best show your infrastructure skills?</button>
-          <button class="resume-bot-starter" type="button" data-question="What certifications do you hold?">What certifications do you hold?</button>
         </div>
       </div>
-    </div>
+    </dialog>
   </section>
+
+  <button id="resume-bot-launcher" class="resume-bot-launcher" type="button" aria-label="Open Ask MareoX AI assistant" aria-haspopup="dialog" aria-controls="resume-bot-dialog" data-state="ready">
+    <svg class="resume-bot-sentinel" viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M32 5 53 16v16c0 13-8.7 23-21 27C19.7 55 11 45 11 32V16L32 5Z" />
+      <path class="resume-bot-sentinel-line" d="M21 32h22M32 21v22M24 24l16 16M40 24 24 40" />
+      <circle cx="32" cy="32" r="5" />
+    </svg>
+    <span>Ask MareoX AI</span>
+  </button>
 
   <!-- ── Footer ──────────────────────────────── -->
   <footer>
