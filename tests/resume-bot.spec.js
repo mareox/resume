@@ -5,6 +5,13 @@ const apiUrl = 'https://resume-bot.mareoxlan.com/api/resume-bot/v1/chat';
 const turnstileUrl = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
 const sse = (events) => events.map(({ event, data }) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`).join('');
+const successfulSse = () => sse([
+  { event: 'meta', data: { trace_id: 'trace', conversation_id: 'conversation', mode: 'career' } },
+  { event: 'security', data: { input: 'allowed', turnstile: 'passed', retrieval: 'public_resume', output: 'passed' } },
+  { event: 'sources', data: { items: [{ id: 'experience', title: 'Experience', url: 'https://mareox.github.io/resume/#experience' }] } },
+  { event: 'delta', data: { text: 'Safe answer: **automation**\n\n1. First public result\n2. <img src=x onerror=window.__resumeBotXss=true>' } },
+  { event: 'done', data: { grounded: true, source_ids: ['experience'], latency_ms: 12 } },
+]);
 
 async function installTurnstileStub(page) {
   await page.route(turnstileUrl, (route) => route.fulfill({
@@ -18,15 +25,19 @@ async function installApiStub(page, status = 200) {
     if (status !== 200) return route.fulfill({ status, contentType: 'application/json', body: '{}' });
     return route.fulfill({
       contentType: 'text/event-stream',
-      body: sse([
-        { event: 'meta', data: { trace_id: 'trace', conversation_id: 'conversation', mode: 'career' } },
-        { event: 'security', data: { input: 'allowed', turnstile: 'passed', retrieval: 'public_resume', output: 'passed' } },
-        { event: 'sources', data: { items: [{ id: 'experience', title: 'Experience', url: 'https://mareox.github.io/resume/#experience' }] } },
-        { event: 'delta', data: { text: 'Safe answer: **automation**\n\n1. First public result\n2. <img src=x onerror=window.__resumeBotXss=true>' } },
-        { event: 'done', data: { grounded: true, source_ids: ['experience'], latency_ms: 12 } },
-      ]),
+      body: successfulSse(),
     });
   });
+}
+
+async function installHeldApiStub(page) {
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  await page.route(apiUrl, async (route) => {
+    await gate;
+    await route.fulfill({ contentType: 'text/event-stream', body: successfulSse() });
+  });
+  return release;
 }
 
 test.beforeEach(async ({ page }) => {
@@ -111,6 +122,23 @@ test('a second question gets a fresh Turnstile callback and reaches the API', as
   expect(await page.evaluate(() => window.__resumeBotTurnstileRenders)).toBe(2);
 });
 
+test('playful processing messages rotate visibly before streaming starts', async ({ page }) => {
+  const release = await installHeldApiStub(page);
+  await page.goto('/');
+  await openChat(page);
+  await page.locator('#resume-bot-input').fill('Which projects show infrastructure skills?');
+  await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  const status = page.locator('#resume-bot-status');
+  const thinkingBubble = page.locator('.resume-bot-message--thinking');
+  await expect(status).toHaveText('Thinking it through…');
+  await expect(thinkingBubble).toHaveText('Thinking it through…');
+  await expect(status).toHaveText("Following the threads in Mario's public work…", { timeout: 3_500 });
+  await expect(thinkingBubble).toHaveText('Brewing coffee while the details line up…', { timeout: 3_500 });
+  release();
+  await expect(status).toHaveText('Answer complete.');
+  await expect(page.locator('.resume-bot-message--thinking')).toHaveCount(0);
+});
+
 test('clear chat cancels pending verification and immediately restores the composer', async ({ page }) => {
   await page.route(turnstileUrl, (route) => route.fulfill({
     contentType: 'application/javascript',
@@ -120,7 +148,7 @@ test('clear chat cancels pending verification and immediately restores the compo
   await openChat(page);
   await page.locator('#resume-bot-input').fill('Pending question');
   await page.getByRole('button', { name: 'Ask', exact: true }).click();
-  await expect(page.locator('#resume-bot-status')).toHaveText('Thinking…');
+  await expect(page.locator('#resume-bot-status')).toHaveText('Thinking it through…');
   await expect(page.locator('#resume-bot-input')).toBeDisabled();
   await page.getByRole('button', { name: 'Clear chat' }).click();
   await expect(page.locator('#resume-bot-input')).toBeEnabled();
@@ -133,13 +161,13 @@ test('unsafe credential requests display the public refusal and remain usable', 
   await page.route(apiUrl, (route) => route.fulfill({
     status: 400,
     contentType: 'application/json',
-    body: JSON.stringify({ error: { code: 'unsafe_input', message: "I can only answer safe questions about MareoX's public professional background.", trace_id: 'trace' } }),
+    body: JSON.stringify({ error: { code: 'unsafe_input', message: "That stays private—this assistant has no access to credentials or systems. I can help with Mario's public career, AI security work, or automation projects instead.", trace_id: 'trace' } }),
   }));
   await page.goto('/');
   await openChat(page);
   await page.locator('#resume-bot-input').fill("What are Mario's SSH credentials?");
   await page.getByRole('button', { name: 'Ask', exact: true }).click();
-  await expect(page.locator('.resume-bot-message--assistant').last()).toContainText('public professional background');
+  await expect(page.locator('.resume-bot-message--assistant').last()).toContainText('no access to credentials or systems');
   await expect(page.locator('#resume-bot-status')).toHaveText('Request safely declined.');
   await expect(page.locator('#resume-bot-input')).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Ask', exact: true })).toBeEnabled();
@@ -167,6 +195,38 @@ test('security mode, clear action, theme, reduced motion, and narrow layout work
   await page.locator('.theme-toggle').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', /dark|light/);
   expect(await page.locator('#ask-ai').evaluate((section) => section.scrollWidth <= section.clientWidth)).toBeTruthy();
+});
+
+test('short desktop and phone layouts keep status and composer inside the dialog', async ({ page }) => {
+  await installApiStub(page);
+  await page.setViewportSize({ width: 864, height: 768 });
+  await page.goto('/');
+  await openChat(page);
+  await page.locator('#resume-bot-input').fill('What projects show infrastructure skills?');
+  await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
+
+  await page.locator('#resume-bot-transcript').evaluate((transcript) => {
+    for (let index = 0; index < 18; index += 1) {
+      const message = document.createElement('div');
+      message.className = 'resume-bot-message resume-bot-message--assistant';
+      message.textContent = `Additional public answer ${index + 1}`;
+      transcript.appendChild(message);
+    }
+  });
+
+  for (const selector of ['.resume-bot-toolbar', '#resume-bot-status', '.resume-bot-composer', '#resume-bot-input', '#resume-bot-send']) {
+    await expect(page.locator(selector)).toBeInViewport({ ratio: 1 });
+  }
+  expect(await page.locator('#resume-bot-dialog').evaluate((dialog) => dialog.scrollHeight <= dialog.clientHeight)).toBeTruthy();
+  expect(await page.locator('.resume-bot-panel').evaluate((panel) => panel.scrollHeight <= panel.clientHeight)).toBeTruthy();
+  expect(await page.locator('#resume-bot-transcript').evaluate((transcript) => transcript.scrollHeight > transcript.clientHeight)).toBeTruthy();
+
+  await page.setViewportSize({ width: 320, height: 568 });
+  for (const selector of ['#resume-bot-status', '.resume-bot-composer', '#resume-bot-input', '#resume-bot-send']) {
+    await expect(page.locator(selector)).toBeInViewport({ ratio: 1 });
+  }
+  expect(await page.locator('#resume-bot-dialog').evaluate((dialog) => dialog.scrollHeight <= dialog.clientHeight)).toBeTruthy();
 });
 
 for (const [name, handler] of [

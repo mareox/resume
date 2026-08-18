@@ -32,10 +32,11 @@
   let thinkingTimer = null;
 
   const thinkingMessages = [
-    'Thinking…',
-    'Checking Mario\'s public sources…',
-    'Brewing coffee while preparing the answer…',
-    'Connecting the relevant details…',
+    'Thinking it through…',
+    'Following the threads in Mario\'s public work…',
+    'Brewing coffee while the details line up…',
+    'Checking that the answer stays on the facts…',
+    'Turning the notes into something useful…',
   ];
 
   const removeChildren = (element) => { while (element.firstChild) element.removeChild(element.firstChild); };
@@ -49,14 +50,19 @@
     if (thinkingTimer !== null) window.clearInterval(thinkingTimer);
     thinkingTimer = null;
   };
-  const startThinkingStatus = () => {
+  const setThinkingMessage = (assistantNode, message) => {
+    setStatus(message, 'thinking');
+    assistantNode.textContent = message;
+    assistantNode.classList.add('resume-bot-message--thinking');
+  };
+  const startThinkingStatus = (assistantNode) => {
     stopThinkingStatus();
     let messageIndex = 0;
-    setStatus(thinkingMessages[messageIndex]);
+    setThinkingMessage(assistantNode, thinkingMessages[messageIndex]);
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     thinkingTimer = window.setInterval(() => {
       messageIndex = (messageIndex + 1) % thinkingMessages.length;
-      setStatus(thinkingMessages[messageIndex]);
+      setThinkingMessage(assistantNode, thinkingMessages[messageIndex]);
     }, 2200);
   };
   const setBusy = (busy) => { elements.send.disabled = busy; elements.input.disabled = busy; elements.clear.disabled = false; setSentinelState(busy ? 'thinking' : 'ready'); };
@@ -139,6 +145,7 @@
     activeTourStep = Math.max(0, Math.min(index, tourSteps.length - 1));
     elements.tour.hidden = false;
     elements.chat.hidden = true;
+    elements.dialog.dataset.view = 'tour';
     tourSteps.forEach((step, stepIndex) => { step.hidden = stepIndex !== activeTourStep; });
   };
   const openAssistant = (opener) => {
@@ -151,6 +158,7 @@
   const openChat = () => {
     elements.tour.hidden = true;
     elements.chat.hidden = false;
+    elements.dialog.dataset.view = 'chat';
     elements.input.focus();
   };
   const setMode = (mode) => {
@@ -203,7 +211,7 @@
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     const eventOrder = ['meta', 'security', 'sources', 'delta', 'done'];
-    let buffer = ''; let lastIndex = -1; let receivedDone = false;
+    let buffer = ''; let lastIndex = -1; let receivedDone = false; let receivedDelta = false;
     while (!receivedDone) {
       const { value, done } = await reader.read();
       buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
@@ -219,7 +227,10 @@
         if (event === 'meta' && typeof data.conversation_id === 'string') conversationId = data.conversation_id;
         if (event === 'security') renderSecurity(data);
         if (event === 'sources') renderSources(data.items);
-        if (event === 'delta' && typeof data.text === 'string') { stopThinkingStatus(); setStatus('Writing the answer…'); setSentinelState('responding'); assistantNode.textContent += data.text; elements.transcript.scrollTop = elements.transcript.scrollHeight; }
+        if (event === 'delta' && typeof data.text === 'string') {
+          if (!receivedDelta) { assistantNode.textContent = ''; assistantNode.classList.remove('resume-bot-message--thinking'); receivedDelta = true; }
+          stopThinkingStatus(); setStatus('Turning the notes into an answer…', 'responding'); setSentinelState('responding'); assistantNode.textContent += data.text; elements.transcript.scrollTop = elements.transcript.scrollHeight;
+        }
         if (event === 'done') receivedDone = true;
       }
       if (done && !receivedDone) throw new Error('Stream ended early');
@@ -254,21 +265,21 @@
     const requestId = ++requestSequence;
     elements.starters.hidden = true;
     removeChildren(elements.sources); removeChildren(elements.securityCard);
-    setBusy(true); startThinkingStatus(); appendMessage('user', message);
-    const assistantNode = appendMessage('assistant', ''); const requestController = new AbortController(); controller = requestController;
+    setBusy(true); appendMessage('user', message);
+    const assistantNode = appendMessage('assistant', ''); startThinkingStatus(assistantNode); const requestController = new AbortController(); controller = requestController;
     try {
       const token = await getTurnstileToken();
       const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message, conversation_id: conversationId, mode: activeMode, turnstile_token: token }), signal: requestController.signal });
       if (!response.ok) {
         const refusal = await publicUnsafeMessage(response);
         if (!refusal) throw new Error(`Request failed with ${response.status}`);
-        assistantNode.textContent = refusal; renderAssistantMarkdown(assistantNode, refusal);
+        assistantNode.classList.remove('resume-bot-message--thinking'); assistantNode.textContent = refusal; renderAssistantMarkdown(assistantNode, refusal);
         elements.input.value = ''; setStatus('Request safely declined.'); return;
       }
       await readSse(response, assistantNode);
       if (!assistantNode.textContent) throw new Error('Empty answer');
       renderAssistantMarkdown(assistantNode, assistantNode.textContent);
-      elements.input.value = ''; setStatus('Answer complete.');
+      elements.input.value = ''; setStatus('Answer complete.', 'complete');
     } catch (error) {
       if (requestId !== requestSequence || error?.name === 'AbortError') return;
       assistantNode.remove(); showFallback();
