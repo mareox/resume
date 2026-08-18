@@ -238,8 +238,8 @@ test('security mode, clear action, theme, reduced motion, and narrow layout work
   await page.goto('/');
   const launcher = page.locator('#resume-bot-launcher');
   const launcherBox = await launcher.boundingBox();
-  expect(launcherBox.x + launcherBox.width <= 320).toBeTruthy();
-  expect(launcherBox.y + launcherBox.height <= 844).toBeTruthy();
+  expect(launcherBox.x + launcherBox.width).toBeLessThanOrEqual(page.viewportSize().width);
+  expect(launcherBox.y + launcherBox.height).toBeLessThanOrEqual(page.viewportSize().height);
   await openChat(page);
   await page.getByRole('button', { name: 'AI Security Lab' }).click();
   await expect(page.getByRole('button', { name: 'AI Security Lab' })).toHaveAttribute('aria-pressed', 'true');
@@ -304,6 +304,16 @@ test('chat is the only visible surface on every chat entry path and viewport', a
     await expect(page.locator('#resume-bot-tour')).toBeHidden();
     expect(await page.locator('[data-resume-bot-tour-step]').evaluateAll((steps) => steps.every((step) => step.hidden || step.closest('[hidden]')))).toBeTruthy();
     await expect(page.locator('#resume-bot-chat')).toBeVisible();
+    const geometry = await page.locator('#resume-bot-dialog').evaluate((dialog) => {
+      const rect = dialog.getBoundingClientRect();
+      const visualWidth = window.visualViewport?.width ?? window.innerWidth;
+      const visualHeight = window.visualViewport?.height ?? window.innerHeight;
+      return {
+        dialogFits: rect.left >= 0 && rect.top >= 0 && rect.right <= visualWidth && rect.bottom <= visualHeight,
+        pageLocked: getComputedStyle(document.documentElement).overflow === 'hidden',
+      };
+    });
+    expect(geometry).toEqual({ dialogFits: true, pageLocked: true });
     await page.keyboard.press('Escape');
   }
 });
