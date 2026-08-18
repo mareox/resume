@@ -47,6 +47,7 @@ async function openChat(page) {
   await page.getByRole('button', { name: 'Next: automation projects' }).click();
   await page.getByRole('button', { name: 'Ask a follow-up' }).click();
   await expect(page.locator('#resume-bot-chat')).toBeVisible();
+  await expect(page.getByLabel("Ask about Mario's professional background")).toBeVisible();
   await expect(page.locator('#resume-bot-input')).toBeFocused();
 }
 
@@ -119,6 +120,7 @@ test('clear chat cancels pending verification and immediately restores the compo
   await openChat(page);
   await page.locator('#resume-bot-input').fill('Pending question');
   await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.locator('#resume-bot-status')).toHaveText('Thinking…');
   await expect(page.locator('#resume-bot-input')).toBeDisabled();
   await page.getByRole('button', { name: 'Clear chat' }).click();
   await expect(page.locator('#resume-bot-input')).toBeEnabled();

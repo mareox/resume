@@ -29,6 +29,14 @@
   let requestSequence = 0;
   let activeTourStep = 0;
   let lastOpener = elements.launcher;
+  let thinkingTimer = null;
+
+  const thinkingMessages = [
+    'Thinking…',
+    'Checking Mario\'s public sources…',
+    'Brewing coffee while preparing the answer…',
+    'Connecting the relevant details…',
+  ];
 
   const removeChildren = (element) => { while (element.firstChild) element.removeChild(element.firstChild); };
   const setSentinelState = (state) => { elements.launcher.dataset.state = state; };
@@ -36,6 +44,20 @@
     elements.status.textContent = text;
     elements.status.dataset.state = state;
     elements.status.setAttribute('role', state === 'error' ? 'alert' : 'status');
+  };
+  const stopThinkingStatus = () => {
+    if (thinkingTimer !== null) window.clearInterval(thinkingTimer);
+    thinkingTimer = null;
+  };
+  const startThinkingStatus = () => {
+    stopThinkingStatus();
+    let messageIndex = 0;
+    setStatus(thinkingMessages[messageIndex]);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    thinkingTimer = window.setInterval(() => {
+      messageIndex = (messageIndex + 1) % thinkingMessages.length;
+      setStatus(thinkingMessages[messageIndex]);
+    }, 2200);
   };
   const setBusy = (busy) => { elements.send.disabled = busy; elements.input.disabled = busy; elements.clear.disabled = false; setSentinelState(busy ? 'thinking' : 'ready'); };
   const removeTurnstileWidget = () => {
@@ -197,7 +219,7 @@
         if (event === 'meta' && typeof data.conversation_id === 'string') conversationId = data.conversation_id;
         if (event === 'security') renderSecurity(data);
         if (event === 'sources') renderSources(data.items);
-        if (event === 'delta' && typeof data.text === 'string') { setSentinelState('responding'); assistantNode.textContent += data.text; elements.transcript.scrollTop = elements.transcript.scrollHeight; }
+        if (event === 'delta' && typeof data.text === 'string') { stopThinkingStatus(); setStatus('Writing the answer…'); setSentinelState('responding'); assistantNode.textContent += data.text; elements.transcript.scrollTop = elements.transcript.scrollHeight; }
         if (event === 'done') receivedDone = true;
       }
       if (done && !receivedDone) throw new Error('Stream ended early');
@@ -232,7 +254,7 @@
     const requestId = ++requestSequence;
     elements.starters.hidden = true;
     removeChildren(elements.sources); removeChildren(elements.securityCard);
-    setBusy(true); setStatus('Verifying and preparing a grounded answer…'); appendMessage('user', message);
+    setBusy(true); startThinkingStatus(); appendMessage('user', message);
     const assistantNode = appendMessage('assistant', ''); const requestController = new AbortController(); controller = requestController;
     try {
       const token = await getTurnstileToken();
@@ -252,7 +274,7 @@
       assistantNode.remove(); showFallback();
     } finally {
       if (requestId !== requestSequence) return;
-      removeTurnstileWidget(); turnstileReject = null; controller = null; setBusy(false);
+      stopThinkingStatus(); removeTurnstileWidget(); turnstileReject = null; controller = null; setBusy(false);
     }
   };
   elements.career.addEventListener('click', () => setMode('career'));
@@ -265,7 +287,7 @@
   elements.tourChat.addEventListener('click', openChat);
   elements.send.addEventListener('click', send);
   elements.clear.addEventListener('click', () => {
-    requestSequence += 1; if (controller) controller.abort(); controller = null; cancelTurnstile(); setBusy(false);
+    requestSequence += 1; if (controller) controller.abort(); controller = null; cancelTurnstile(); stopThinkingStatus(); setBusy(false);
     conversationId = null; elements.input.value = ''; removeChildren(elements.sources); removeChildren(elements.securityCard);
     elements.securityCard.hidden = activeMode !== 'security_lab'; elements.starters.hidden = false;
     resetTranscript(); setStatus('Chat cleared.'); elements.input.focus();
