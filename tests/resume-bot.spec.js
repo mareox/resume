@@ -547,6 +547,31 @@ test('copy succeeds and typed timeout recovers on the next Ask', async ({ page }
   await expect(page.locator('#resume-bot-status')).toHaveText('Answer copied.');
 });
 
+test('client wall-clock timeout releases a stalled request and recovers on the next Ask', async ({ page }) => {
+  await page.addInitScript(() => { window.__resumeBotRequestTimeoutMs = 40; });
+  let calls = 0;
+  await page.route(apiUrl, async (route) => { calls += 1; if (calls === 1) return new Promise(() => {}); return route.fulfill({ contentType: 'text/event-stream', body: successfulSse() }); });
+  await page.goto('/'); await openChat(page);
+  await page.locator('#resume-bot-input').fill('Stalled request'); await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.locator('#resume-bot-status')).toContainText('assistant is unavailable');
+  await expect(page.locator('.resume-bot-message--assistant').last().getByRole('button', { name: 'Retry' })).toBeVisible();
+  await page.locator('#resume-bot-input').fill('Fresh request'); await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
+});
+
+test('client wall-clock timeout starts after Turnstile verification completes', async ({ page }) => {
+  await page.unroute(turnstileUrl);
+  await page.addInitScript(() => { window.__resumeBotRequestTimeoutMs = 40; });
+  await page.route(turnstileUrl, (route) => route.fulfill({
+    contentType: 'application/javascript',
+    body: `window.turnstile={render:function(_,options){window.__resumeBotTurnstile=options;return 1;},execute:function(){window.setTimeout(function(){window.__resumeBotTurnstile.callback('TEST');},90);},reset:function(){},remove:function(){}};`,
+  }));
+  await installApiStub(page);
+  await page.goto('/'); await openChat(page);
+  await page.locator('#resume-bot-input').fill('Wait for verification'); await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
+});
+
 test('busy Retry and follow-up controls cannot start another request or replace the composer', async ({ page }) => {
   let release;
   const gate = new Promise((resolve) => { release = resolve; });
