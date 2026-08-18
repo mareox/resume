@@ -572,6 +572,21 @@ test('client wall-clock timeout starts after Turnstile verification completes', 
   await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
 });
 
+test('verification timeout releases a missing Turnstile callback and recovers on Retry', async ({ page }) => {
+  await page.unroute(turnstileUrl);
+  await page.addInitScript(() => { window.__resumeBotVerificationTimeoutMs = 40; });
+  await page.route(turnstileUrl, (route) => route.fulfill({
+    contentType: 'application/javascript',
+    body: `window.turnstile={render:function(_,options){window.__resumeBotTurnstile=options;return 1;},execute:function(){window.__resumeBotVerificationAttempts=(window.__resumeBotVerificationAttempts||0)+1;if(window.__resumeBotVerificationAttempts>1)window.__resumeBotTurnstile.callback('TEST');},reset:function(){},remove:function(){}};`,
+  }));
+  await installApiStub(page);
+  await page.goto('/'); await openChat(page);
+  await page.locator('#resume-bot-input').fill('Verification stalls once'); await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.locator('#resume-bot-status')).toContainText('assistant is unavailable');
+  await page.locator('.resume-bot-message--assistant').last().getByRole('button', { name: 'Retry' }).click();
+  await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
+});
+
 test('busy Retry and follow-up controls cannot start another request or replace the composer', async ({ page }) => {
   let release;
   const gate = new Promise((resolve) => { release = resolve; });
