@@ -38,3 +38,21 @@ The sentinel, guided career path, and existing chat work in a real browser on de
 ## Next action
 
 Monitor production behavior and keep T4 as a separate, intentionally blocked corpus decision; the public homelab journal is not part of the current knowledge base.
+
+## Experience v2 follow-up
+
+The evidence-aware v2 experience is implemented and locally accepted under the
+executor-grade plan at
+`homelab-infra/atlas/resume-bot/plans/resume-bot-experience-v2-build-plan.md`.
+It replaces the nested tour/chat presentation with mutually exclusive views,
+adds answer-owned public evidence and deterministic follow-ups, makes Stop,
+Retry, Copy, and Clear recoverable, and keeps Security Lab details behind a
+plain-language disclosure.
+
+Local acceptance covers 52 desktop/mobile Playwright checks, 118 backend tests,
+41 deterministic evaluation cases, secret scanning, visual review, and fresh
+code, UX/accessibility, and verification passes with no unresolved P0/P1
+findings. Deployment remains ordered: publish the backward-compatible frontend
+against the v1 API first, prove it in a real browser, then release the additive
+v2 backend. T4 remains blocked and the public homelab journal is not part of the
+v2 corpus.

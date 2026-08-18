@@ -1,327 +1,97 @@
 (() => {
   'use strict';
-
   const endpoint = 'https://resume-bot.mareoxlan.com/api/resume-bot/v1/chat';
   const sourceBaseUrl = 'https://mareox.github.io/resume/#';
+  const pageActions = { about: 'Open professional summary', ai: "Explore Mario's AI approach", projects: 'Open project details', experience: 'Show the career timeline', skills: 'View technical expertise', certifications: 'Review credentials' };
+  const suggestionPairs = new Set([
+    "See Mario's scale\u0000What is the largest environment Mario has supported?", "Trace the career path\u0000Walk me through Mario's career progression.", "Explore his AI workflow\u0000How does Mario use AI in day-to-day engineering?", "See the safety approach\u0000How does Mario build trustworthy AI systems?", "Open the automation story\u0000Which automation project had the biggest measurable impact?", "Tour the homelab\u0000What does Mario's public homelab project demonstrate?", "Follow the career arc\u0000How did Mario move from support into professional services?", "Measure the impact\u0000What outcomes has Mario delivered for large customers?", "Map the technical stack\u0000Which skills connect networking, security, and automation?", "Test the depth\u0000Which technologies has Mario used in production?", "Review the credentials\u0000Which certifications support Mario's security background?", "Connect learning to work\u0000How do Mario's credentials relate to his current work?",
+    "Try a safe injection question\u0000How does Mario test AI systems for prompt injection?", "Inspect the trust model\u0000How does this assistant keep answers grounded?",
+  ]);
+  const challengeExplanations = {
+    injection: 'Nice try. That request was stopped before answer generation, so it was never treated as resume evidence.',
+    credentials: 'Credentials are private. The request was rejected before generation; no secret or private system source was queried.',
+    safe: 'Allowed. This is about Mario\'s public AI-security work, so the assistant used approved public sources and checked the output before display.',
+  };
   const siteKeyMarker = 'TURNSTILE_SITE_KEY_REPLACE_ME';
   const siteKey = document.querySelector('meta[name="resume-bot-turnstile-sitekey"]')?.content || '';
   const isLocalTest = ['127.0.0.1', 'localhost'].includes(window.location.hostname);
   const elements = {
     career: document.getElementById('resume-bot-mode-career'), security: document.getElementById('resume-bot-mode-security'),
-    transcript: document.getElementById('resume-bot-transcript'), input: document.getElementById('resume-bot-input'),
-    send: document.getElementById('resume-bot-send'), clear: document.getElementById('resume-bot-clear'),
-    status: document.getElementById('resume-bot-status'), sources: document.getElementById('resume-bot-sources'),
-    securityCard: document.getElementById('resume-bot-security'), turnstile: document.getElementById('resume-bot-turnstile'),
-    open: document.getElementById('resume-bot-open'), launcher: document.getElementById('resume-bot-launcher'),
-    dialog: document.getElementById('resume-bot-dialog'), close: document.getElementById('resume-bot-close'),
-    tour: document.getElementById('resume-bot-tour'), chat: document.getElementById('resume-bot-chat'), tourChat: document.getElementById('resume-bot-tour-chat'),
-    starters: document.getElementById('resume-bot-starters'),
+    transcript: document.getElementById('resume-bot-transcript'), input: document.getElementById('resume-bot-input'), send: document.getElementById('resume-bot-send'), stop: document.getElementById('resume-bot-stop'), clear: document.getElementById('resume-bot-clear'), status: document.getElementById('resume-bot-status'), turnstile: document.getElementById('resume-bot-turnstile'),
+    open: document.getElementById('resume-bot-open'), launcher: document.getElementById('resume-bot-launcher'), dialog: document.getElementById('resume-bot-dialog'), close: document.getElementById('resume-bot-close'), tour: document.getElementById('resume-bot-tour'), chat: document.getElementById('resume-bot-chat'), tourChat: document.getElementById('resume-bot-tour-chat'), starters: document.getElementById('resume-bot-starters'), challenges: document.getElementById('resume-bot-challenges'),
   };
   const tourSteps = Array.from(document.querySelectorAll('[data-resume-bot-tour-step]'));
   const tourNextButtons = Array.from(document.querySelectorAll('[data-resume-bot-tour-next]'));
   if (Object.values(elements).some((element) => element === null) || !tourSteps.length || !tourNextButtons.length || typeof elements.dialog.showModal !== 'function') return;
 
-  let activeMode = 'career';
-  let conversationId = null;
-  let controller = null;
-  let turnstileWidgetId = null;
-  let turnstileReject = null;
-  let requestSequence = 0;
-  let activeTourStep = 0;
-  let lastOpener = elements.launcher;
-  let thinkingTimer = null;
-
-  const thinkingMessages = [
-    'Thinking it through…',
-    'Following the threads in Mario\'s public work…',
-    'Brewing coffee while the details line up…',
-    'Checking that the answer stays on the facts…',
-    'Turning the notes into something useful…',
-  ];
-
+  let activeMode = 'career'; let conversationId = null; let controller = null; let turnstileWidgetId = null; let turnstileReject = null;
+  let requestSequence = 0; let activeTourStep = 0; let lastOpener = elements.launcher; let thinkingTimer = null; let lastPrompt = ''; let activeTurn = null; let navigationTarget = null; let challengesDismissed = false;
+  const thinkingMessages = ['Thinking it through…', "Following the threads in Mario's public work…", 'Brewing coffee while the details line up…', 'Checking that the answer stays on the facts…', 'Turning the notes into something useful…'];
   const removeChildren = (element) => { while (element.firstChild) element.removeChild(element.firstChild); };
   const setSentinelState = (state) => { elements.launcher.dataset.state = state; };
-  const setStatus = (text, state = 'idle') => {
-    elements.status.textContent = text;
-    elements.status.dataset.state = state;
-    elements.status.setAttribute('role', state === 'error' ? 'alert' : 'status');
-  };
-  const stopThinkingStatus = () => {
-    if (thinkingTimer !== null) window.clearInterval(thinkingTimer);
-    thinkingTimer = null;
-  };
-  const setThinkingMessage = (assistantNode, message) => {
-    setStatus(message, 'thinking');
-    assistantNode.textContent = message;
-    assistantNode.classList.add('resume-bot-message--thinking');
-  };
-  const startThinkingStatus = (assistantNode) => {
-    stopThinkingStatus();
-    let messageIndex = 0;
-    setThinkingMessage(assistantNode, thinkingMessages[messageIndex]);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    thinkingTimer = window.setInterval(() => {
-      messageIndex = (messageIndex + 1) % thinkingMessages.length;
-      setThinkingMessage(assistantNode, thinkingMessages[messageIndex]);
-    }, 2200);
-  };
-  const setBusy = (busy) => { elements.send.disabled = busy; elements.input.disabled = busy; elements.clear.disabled = false; setSentinelState(busy ? 'thinking' : 'ready'); };
-  const removeTurnstileWidget = () => {
-    if (turnstileWidgetId !== null && window.turnstile) window.turnstile.remove(turnstileWidgetId);
-    turnstileWidgetId = null;
-    removeChildren(elements.turnstile);
-  };
-  const cancelTurnstile = () => {
-    const reject = turnstileReject;
-    turnstileReject = null;
-    removeTurnstileWidget();
-    if (reject) reject(new DOMException('Verification cancelled', 'AbortError'));
-  };
-  const resetTranscript = () => {
-    removeChildren(elements.transcript);
-    const empty = document.createElement('p');
-    empty.className = 'resume-bot-empty';
-    empty.textContent = 'Ask a question or choose a starter prompt to begin.';
-    elements.transcript.appendChild(empty);
-  };
-  const appendInlineMarkdown = (element, text) => {
-    text.split(/(\*\*[^*\n]+\*\*)/g).forEach((part) => {
-      if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
-        const strong = document.createElement('strong');
-        strong.textContent = part.slice(2, -2);
-        element.appendChild(strong);
-        return;
-      }
-      element.appendChild(document.createTextNode(part));
-    });
-  };
-  const renderAssistantMarkdown = (element, text) => {
-    removeChildren(element);
-    let paragraphLines = [];
-    let list = null;
-    const flushParagraph = () => {
-      if (!paragraphLines.length) return;
-      const paragraph = document.createElement('p');
-      appendInlineMarkdown(paragraph, paragraphLines.join(' '));
-      element.appendChild(paragraph);
-      paragraphLines = [];
-    };
-    const closeList = () => { list = null; };
-    text.replace(/\r\n?/g, '\n').split('\n').forEach((rawLine) => {
-      const line = rawLine.trim();
-      const item = line.match(/^(?:[-*]|\d+[.)])\s+(.+)$/);
-      if (item) {
-        flushParagraph();
-        const ordered = /^\d+[.)]/.test(line);
-        if (!list || list.tagName !== (ordered ? 'OL' : 'UL')) {
-          list = document.createElement(ordered ? 'ol' : 'ul');
-          element.appendChild(list);
-        }
-        const listItem = document.createElement('li');
-        appendInlineMarkdown(listItem, item[1]);
-        list.appendChild(listItem);
-        return;
-      }
-      if (!line) {
-        flushParagraph();
-        closeList();
-        return;
-      }
-      closeList();
-      paragraphLines.push(line);
-    });
-    flushParagraph();
-  };
-  const appendMessage = (role, text) => {
-    elements.transcript.querySelector('.resume-bot-empty')?.remove();
-    const node = document.createElement('div');
-    node.className = `resume-bot-message resume-bot-message--${role}`;
-    node.textContent = text;
-    elements.transcript.appendChild(node);
-    elements.transcript.scrollTop = elements.transcript.scrollHeight;
-    return node;
-  };
-  const showTourStep = (index) => {
-    activeTourStep = Math.max(0, Math.min(index, tourSteps.length - 1));
-    elements.tour.hidden = false;
-    elements.chat.hidden = true;
-    elements.dialog.dataset.view = 'tour';
-    tourSteps.forEach((step, stepIndex) => { step.hidden = stepIndex !== activeTourStep; });
-  };
-  const openAssistant = (opener) => {
-    lastOpener = opener;
-    showTourStep(0);
-    if (!elements.dialog.open) elements.dialog.showModal();
-    window.requestAnimationFrame(() => tourSteps[0].querySelector('button, a')?.focus());
-  };
-  const closeAssistant = () => { if (elements.dialog.open) elements.dialog.close(); };
-  const openChat = () => {
-    elements.tour.hidden = true;
-    elements.chat.hidden = false;
-    elements.dialog.dataset.view = 'chat';
-    elements.input.focus();
-  };
-  const setMode = (mode) => {
-    activeMode = mode;
-    const isSecurity = mode === 'security_lab';
-    elements.career.setAttribute('aria-pressed', String(!isSecurity));
-    elements.security.setAttribute('aria-pressed', String(isSecurity));
-    elements.securityCard.hidden = !isSecurity;
-    if (!isSecurity) removeChildren(elements.securityCard);
-  };
-  const renderSources = (items) => {
-    removeChildren(elements.sources);
-    if (!Array.isArray(items)) return;
-    items.forEach((item) => {
-      if (!item || typeof item.id !== 'string' || typeof item.title !== 'string') return;
-      const expectedUrl = `${sourceBaseUrl}${item.id}`;
-      if (item.url !== expectedUrl) return;
-      const link = document.createElement('a');
-      link.className = 'resume-bot-source';
-      link.href = expectedUrl;
-      link.textContent = item.title;
-      elements.sources.appendChild(link);
-    });
-  };
-  const renderSecurity = (data) => {
-    if (activeMode !== 'security_lab' || !data || typeof data !== 'object') return;
-    removeChildren(elements.securityCard);
-    elements.securityCard.hidden = false;
-    const usedFallback = data.output === 'fallback';
-    const details = document.createElement('details');
-    details.className = 'resume-bot-security-details';
-    const summary = document.createElement('summary');
-    summary.textContent = usedFallback
-      ? 'Safety trace: guarded fallback used'
-      : 'Safety trace: passed · public sources only';
-    const checks = document.createElement('ul');
-    checks.className = 'resume-bot-security-checks';
-    [
-      ['Input guard', data.input === 'allowed' ? 'Passed' : 'Checked'],
-      ['Visitor check', data.turnstile === 'passed' ? 'Passed' : 'Checked'],
-      ['Knowledge boundary', data.retrieval === 'public_resume' ? 'Public resume' : 'No public match'],
-      ['Answer guard', usedFallback ? 'Safe fallback' : 'Passed'],
-    ].forEach(([label, outcome]) => {
-      const item = document.createElement('li');
-      const name = document.createElement('span');
-      const result = document.createElement('strong');
-      name.textContent = label;
-      result.textContent = outcome;
-      item.append(name, result);
-      checks.appendChild(item);
-    });
-    details.append(summary, checks);
-    elements.securityCard.appendChild(details);
-  };
-  const showFallback = () => {
-    setStatus('The assistant is unavailable right now. You can still browse the resume or download the PDF.', 'error');
-    const fallback = document.createElement('p');
-    fallback.className = 'resume-bot-fallback';
-    const browse = document.createElement('a');
-    browse.href = '#about'; browse.textContent = 'Browse the resume';
-    const pdf = document.createElement('a');
-    pdf.href = 'static/Mario_Sanchez_Resume.pdf'; pdf.download = 'Mario_Sanchez_Resume.pdf'; pdf.textContent = 'download the PDF';
-    fallback.append(browse, document.createTextNode(' or '), pdf, document.createTextNode('.'));
-    elements.transcript.appendChild(fallback);
-  };
-  const readSse = async (response, assistantNode) => {
+  const setStatus = (text, state = 'idle') => { elements.status.textContent = text; elements.status.dataset.state = state; elements.status.setAttribute('role', state === 'error' ? 'alert' : 'status'); };
+  const stopThinkingStatus = () => { if (thinkingTimer !== null) window.clearInterval(thinkingTimer); thinkingTimer = null; };
+  const setBusy = (busy) => { elements.send.disabled = busy; elements.input.disabled = busy; elements.career.disabled = busy; elements.security.disabled = busy; elements.stop.hidden = !busy; elements.stop.disabled = !busy; elements.clear.disabled = false; setSentinelState(busy ? 'thinking' : 'ready'); };
+  const scrollTranscript = () => { elements.transcript.scrollTop = elements.transcript.scrollHeight; };
+  const showView = (view) => { elements.tour.hidden = view !== 'tour'; elements.chat.hidden = view !== 'chat'; elements.dialog.dataset.view = view; if (view === 'tour') tourSteps.forEach((step, index) => { step.hidden = index !== activeTourStep; }); };
+  const showTourStep = (index) => { activeTourStep = Math.max(0, Math.min(index, tourSteps.length - 1)); showView('tour'); };
+  const openAssistant = (opener) => { lastOpener = opener; showTourStep(0); if (!elements.dialog.open) elements.dialog.showModal(); window.requestAnimationFrame(() => tourSteps[0].querySelector('button, a')?.focus()); };
+  const openChat = () => { showView('chat'); elements.input.focus(); };
+  const resetTranscript = () => { removeChildren(elements.transcript); const empty = document.createElement('p'); empty.className = 'resume-bot-empty'; empty.textContent = 'Ask a question or choose a starter prompt to begin.'; elements.transcript.appendChild(empty); };
+  const appendInlineMarkdown = (element, text) => text.split(/(\*\*[^*\n]+\*\*)/g).forEach((part) => { if (part.startsWith('**') && part.endsWith('**') && part.length > 4) { const strong = document.createElement('strong'); strong.textContent = part.slice(2, -2); element.appendChild(strong); } else element.appendChild(document.createTextNode(part)); });
+  const renderAssistantMarkdown = (element, text) => { removeChildren(element); let paragraphLines = []; let list = null; const flush = () => { if (!paragraphLines.length) return; const p = document.createElement('p'); appendInlineMarkdown(p, paragraphLines.join(' ')); element.appendChild(p); paragraphLines = []; }; text.replace(/\r\n?/g, '\n').split('\n').forEach((raw) => { const line = raw.trim(); const item = line.match(/^(?:[-*]|\d+[.)])\s+(.+)$/); if (item) { flush(); const ordered = /^\d+[.)]/.test(line); if (!list || list.tagName !== (ordered ? 'OL' : 'UL')) { list = document.createElement(ordered ? 'ol' : 'ul'); element.appendChild(list); } const li = document.createElement('li'); appendInlineMarkdown(li, item[1]); list.appendChild(li); return; } if (!line) { flush(); return; } list = null; paragraphLines.push(line); }); flush(); };
+  const appendMessage = (role, text) => { elements.transcript.querySelector('.resume-bot-empty')?.remove(); const node = document.createElement('div'); node.className = `resume-bot-message resume-bot-message--${role}`; node.textContent = text; elements.transcript.appendChild(node); scrollTranscript(); return node; };
+  const createTurn = (prompt, mode) => { const node = appendMessage('assistant', ''); const text = document.createElement('div'); text.className = 'resume-bot-answer-text'; node.appendChild(text); return { node, text, prompt, mode, sourceItems: [], suggestions: [], security: null, done: null, receivedDelta: false, terminal: false }; };
+  const setThinkingMessage = (turn, message) => { turn.text.textContent = message; turn.node.classList.add('resume-bot-message--thinking'); turn.node.setAttribute('aria-hidden', 'true'); };
+  const startThinkingStatus = (turn) => { stopThinkingStatus(); let index = 0; setStatus('Working on your question…', 'thinking'); setThinkingMessage(turn, thinkingMessages[index]); if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; thinkingTimer = window.setInterval(() => { index = (index + 1) % thinkingMessages.length; setThinkingMessage(turn, thinkingMessages[index]); }, 2200); };
+  const removeTurnstileWidget = () => { if (turnstileWidgetId !== null && window.turnstile) window.turnstile.remove(turnstileWidgetId); turnstileWidgetId = null; removeChildren(elements.turnstile); };
+  const cancelTurnstile = () => { const reject = turnstileReject; turnstileReject = null; removeTurnstileWidget(); if (reject) reject(new DOMException('Verification cancelled', 'AbortError')); };
+  const setMode = (mode) => { activeMode = mode; const security = mode === 'security_lab'; if (security) challengesDismissed = false; elements.career.setAttribute('aria-pressed', String(!security)); elements.security.setAttribute('aria-pressed', String(security)); elements.challenges.hidden = !security || challengesDismissed; };
+  const navigateToTarget = (id) => { if (!Object.hasOwn(pageActions, id)) return; const target = document.getElementById(id); if (!target) return; target.setAttribute('tabindex', '-1'); navigationTarget = target; if (elements.dialog.open) elements.dialog.close(); window.location.hash = id; target.scrollIntoView({ behavior: 'smooth', block: 'start' }); target.focus({ preventScroll: true }); };
+  const validSource = (item) => item && typeof item.id === 'string' && typeof item.title === 'string' && item.url === `${sourceBaseUrl}${item.id}` && Object.hasOwn(pageActions, item.id);
+  const appendAction = (container, label, action, value = '') => { const button = document.createElement('button'); button.className = 'resume-bot-button'; button.type = 'button'; button.textContent = label; button.dataset.action = action; button.dataset.value = value; container.appendChild(button); };
+  const renderEvidence = (turn) => { const items = turn.sourceItems.filter(validSource).filter((item) => typeof item.excerpt === 'string' && item.excerpt.trim()); if (!items.length) return; const details = document.createElement('details'); details.className = 'resume-bot-turn-evidence'; const summary = document.createElement('summary'); summary.textContent = 'Why this answer?'; const body = document.createElement('div'); body.className = 'resume-bot-turn-evidence-body'; items.forEach((item) => { const quote = document.createElement('p'); quote.className = 'resume-bot-turn-excerpt'; quote.textContent = item.excerpt; const link = document.createElement('a'); link.className = 'resume-bot-source'; link.href = `${sourceBaseUrl}${item.id}`; link.textContent = item.title; body.append(quote, link); }); details.append(summary, body); turn.node.appendChild(details); };
+  const validSecurityPassed = (security) => security && security.input === 'allowed' && security.turnstile === 'passed' && security.retrieval === 'public_resume' && security.output === 'passed';
+  const validSuggestion = (item) => item && typeof item.label === 'string' && typeof item.prompt === 'string' && suggestionPairs.has(`${item.label}\u0000${item.prompt}`);
+  const renderSecurity = (turn) => { if (turn.mode !== 'security_lab' || !turn.done?.grounded || !validSecurityPassed(turn.security)) return; const details = document.createElement('details'); details.className = 'resume-bot-security-details resume-bot-security'; const summary = document.createElement('summary'); summary.textContent = 'Safety trace: passed · public sources only'; const checks = document.createElement('ul'); checks.className = 'resume-bot-security-checks'; [['Input guard', 'Passed'], ['Visitor check', 'Passed'], ['Knowledge boundary', 'Public resume'], ['Answer guard', 'Passed']].forEach(([name, result]) => { const li = document.createElement('li'); const span = document.createElement('span'); const strong = document.createElement('strong'); span.textContent = name; strong.textContent = result; li.append(span, strong); checks.appendChild(li); }); details.append(summary, checks); turn.node.appendChild(details); };
+  const renderActions = (turn) => { if (turn.node.querySelector('.resume-bot-turn-actions')) return; const actions = document.createElement('div'); actions.className = 'resume-bot-turn-actions'; if (turn.receivedDelta || turn.refusal || turn.fallback) appendAction(actions, 'Copy answer', 'copy'); appendAction(actions, 'Retry', 'retry', turn.prompt); turn.sourceItems.filter(validSource).forEach((item) => appendAction(actions, pageActions[item.id], 'navigate', item.id)); turn.suggestions.filter(validSuggestion).slice(0, 3).forEach((item) => appendAction(actions, item.label, 'follow-up', item.prompt)); turn.node.appendChild(actions); };
+  const finishTurn = (turn) => { turn.terminal = true; turn.node.classList.remove('resume-bot-message--thinking'); turn.node.removeAttribute('aria-hidden'); if (!turn.done?.grounded) { if (!turn.receivedDelta || !turn.text.textContent.trim()) turn.text.textContent = 'I could not ground an answer in the public resume. Try a more specific question about experience, projects, skills, or certifications.'; turn.refusal = true; renderAssistantMarkdown(turn.text, turn.text.textContent); renderActions(turn); scrollTranscript(); return; } if (!turn.text.textContent.trim()) throw new Error('Empty answer'); renderAssistantMarkdown(turn.text, turn.text.textContent); renderEvidence(turn); renderSecurity(turn); renderActions(turn); scrollTranscript(); };
+  const getTurnstileToken = () => new Promise((resolve, reject) => { if (!window.turnstile || !siteKey || (siteKey === siteKeyMarker && !isLocalTest)) { reject(new Error('Turnstile is not configured')); return; } cancelTurnstile(); turnstileReject = reject; const size = window.matchMedia('(max-width: 480px)').matches ? 'compact' : 'flexible'; const settle = (callback) => (value) => { turnstileReject = null; callback(value); }; turnstileWidgetId = window.turnstile.render(elements.turnstile, { sitekey: siteKey === siteKeyMarker ? 'TEST' : siteKey, action: 'resume_chat', appearance: 'interaction-only', execution: 'execute', size, callback: settle(resolve), 'error-callback': settle(() => reject(new Error('Turnstile failed'))), 'expired-callback': settle(() => reject(new Error('Turnstile expired'))) }); window.turnstile.execute(turnstileWidgetId); });
+  const publicUnsafeMessage = async (response) => { if (response.status !== 400) return ''; try { const payload = await response.json(); return payload?.error?.code === 'unsafe_input' && typeof payload.error.message === 'string' ? payload.error.message : ''; } catch (_) { return ''; } };
+  const readSse = async (response, turn, requestId) => {
     if (!response.body) throw new Error('Missing response stream');
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    const eventOrder = ['meta', 'security', 'sources', 'delta', 'done'];
-    let buffer = ''; let lastIndex = -1; let receivedDone = false; let receivedDelta = false;
-    while (!receivedDone) {
-      const { value, done } = await reader.read();
-      buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
-      let boundary = buffer.indexOf('\n\n');
+    const reader = response.body.getReader(); const decoder = new TextDecoder();
+    const known = new Set(['meta', 'security', 'sources', 'delta', 'suggestions', 'done']);
+    let buffer = ''; let meta = false; let security = false; let sources = false; let deltas = 0; let suggestions = false; let complete = false;
+    const validPhase = (event) => ({ meta: !meta, security: meta && !security && !sources, sources: meta && !sources && deltas === 0, delta: sources && !suggestions, suggestions: sources && deltas > 0 && !suggestions, done: sources && deltas > 0 && !complete })[event];
+    while (!complete) {
+      const chunk = await reader.read(); buffer += decoder.decode(chunk.value || new Uint8Array(), { stream: !chunk.done }); let boundary = buffer.indexOf('\n\n');
       while (boundary >= 0) {
         const block = buffer.slice(0, boundary); buffer = buffer.slice(boundary + 2); boundary = buffer.indexOf('\n\n');
-        const eventLine = block.split('\n').find((line) => line.startsWith('event: '));
-        const dataLine = block.split('\n').find((line) => line.startsWith('data: '));
-        if (!eventLine || !dataLine) throw new Error('Invalid stream event');
-        const event = eventLine.slice(7); const data = JSON.parse(dataLine.slice(6)); const index = eventOrder.indexOf(event);
-        if (index < 0 || index < lastIndex || (event !== 'delta' && index === lastIndex)) throw new Error('Unexpected stream event order');
-        lastIndex = index;
-        if (event === 'meta' && typeof data.conversation_id === 'string') conversationId = data.conversation_id;
-        if (event === 'security') renderSecurity(data);
-        if (event === 'sources') renderSources(data.items);
-        if (event === 'delta' && typeof data.text === 'string') {
-          if (!receivedDelta) { assistantNode.textContent = ''; assistantNode.classList.remove('resume-bot-message--thinking'); receivedDelta = true; }
-          stopThinkingStatus(); setStatus('Turning the notes into an answer…', 'responding'); setSentinelState('responding'); assistantNode.textContent += data.text; elements.transcript.scrollTop = elements.transcript.scrollHeight;
-        }
-        if (event === 'done') receivedDone = true;
+        const eventLine = block.split('\n').find((line) => line.startsWith('event: ')); const dataLine = block.split('\n').find((line) => line.startsWith('data: '));
+        if (!eventLine || !dataLine) throw new Error('Invalid stream event'); const event = eventLine.slice(7); if (!known.has(event)) continue;
+        let data; try { data = JSON.parse(dataLine.slice(6)); } catch (_) { throw new Error('Invalid stream payload'); } if (!data || typeof data !== 'object' || !validPhase(event)) throw new Error('Unexpected stream event order');
+        if (requestId !== requestSequence) return;
+        if (event === 'meta') { meta = true; if (typeof data.conversation_id === 'string') conversationId = data.conversation_id; }
+        if (event === 'security') { security = true; turn.security = data; }
+        if (event === 'sources') { sources = true; if (Array.isArray(data.items)) turn.sourceItems = data.items; }
+        if (event === 'delta' && typeof data.text === 'string') { if (!turn.receivedDelta) { turn.text.textContent = ''; turn.node.classList.remove('resume-bot-message--thinking'); turn.node.removeAttribute('aria-hidden'); turn.receivedDelta = true; } deltas += 1; stopThinkingStatus(); setStatus('Turning the notes into an answer…', 'responding'); setSentinelState('responding'); turn.text.textContent += data.text; scrollTranscript(); }
+        if (event === 'suggestions') { suggestions = true; if (Array.isArray(data.items)) turn.suggestions = data.items; }
+        if (event === 'done') { turn.done = data; complete = true; }
       }
-      if (done && !receivedDone) throw new Error('Stream ended early');
+      if (chunk.done && !complete) throw new Error('Stream ended early');
     }
   };
-  const getTurnstileToken = () => new Promise((resolve, reject) => {
-    if (!window.turnstile || !siteKey || (siteKey === siteKeyMarker && !isLocalTest)) { reject(new Error('Turnstile is not configured')); return; }
-    cancelTurnstile();
-    turnstileReject = reject;
-    const effectiveSiteKey = siteKey === siteKeyMarker ? 'TEST' : siteKey;
-    const size = window.matchMedia('(max-width: 480px)').matches ? 'compact' : 'flexible';
-    const settle = (callback) => (value) => { turnstileReject = null; callback(value); };
-    const options = { sitekey: effectiveSiteKey, action: 'resume_chat', appearance: 'interaction-only', execution: 'execute', size, callback: settle(resolve), 'error-callback': settle(() => reject(new Error('Turnstile failed'))), 'expired-callback': settle(() => reject(new Error('Turnstile expired'))) };
-    turnstileWidgetId = window.turnstile.render(elements.turnstile, options);
-    window.turnstile.execute(turnstileWidgetId);
-  });
-  const publicUnsafeMessage = async (response) => {
-    if (response.status !== 400) return '';
-    try {
-      const payload = await response.json();
-      return payload?.error?.code === 'unsafe_input' && typeof payload.error.message === 'string'
-        ? payload.error.message
-        : '';
-    } catch (_) {
-      return '';
-    }
-  };
-  const send = async () => {
-    const message = elements.input.value.trim();
-    if (!message) { setStatus('Enter a question first.', 'error'); elements.input.focus(); return; }
-    if (message.length > 500) { setStatus('Questions must be 500 characters or fewer.', 'error'); return; }
-    const requestId = ++requestSequence;
-    elements.starters.hidden = true;
-    removeChildren(elements.sources); removeChildren(elements.securityCard);
-    setBusy(true); appendMessage('user', message);
-    const assistantNode = appendMessage('assistant', ''); startThinkingStatus(assistantNode); const requestController = new AbortController(); controller = requestController;
-    try {
-      const token = await getTurnstileToken();
-      const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message, conversation_id: conversationId, mode: activeMode, turnstile_token: token }), signal: requestController.signal });
-      if (!response.ok) {
-        const refusal = await publicUnsafeMessage(response);
-        if (!refusal) throw new Error(`Request failed with ${response.status}`);
-        assistantNode.classList.remove('resume-bot-message--thinking'); assistantNode.textContent = refusal; renderAssistantMarkdown(assistantNode, refusal);
-        elements.input.value = ''; setStatus('Request safely declined.'); return;
-      }
-      await readSse(response, assistantNode);
-      if (!assistantNode.textContent) throw new Error('Empty answer');
-      renderAssistantMarkdown(assistantNode, assistantNode.textContent);
-      elements.input.value = ''; setStatus('Answer complete.', 'complete');
-    } catch (error) {
-      if (requestId !== requestSequence || error?.name === 'AbortError') return;
-      assistantNode.remove(); showFallback();
-    } finally {
-      if (requestId !== requestSequence) return;
-      stopThinkingStatus(); removeTurnstileWidget(); turnstileReject = null; controller = null; setBusy(false);
-    }
-  };
-  elements.career.addEventListener('click', () => setMode('career'));
-  elements.security.addEventListener('click', () => setMode('security_lab'));
-  elements.open.addEventListener('click', (event) => openAssistant(event.currentTarget));
-  elements.launcher.addEventListener('click', (event) => openAssistant(event.currentTarget));
-  elements.close.addEventListener('click', closeAssistant);
-  elements.dialog.addEventListener('close', () => { showTourStep(0); lastOpener?.focus(); });
-  tourNextButtons.forEach((button) => button.addEventListener('click', () => showTourStep(activeTourStep + 1)));
-  elements.tourChat.addEventListener('click', openChat);
-  elements.send.addEventListener('click', send);
-  elements.clear.addEventListener('click', () => {
-    requestSequence += 1; if (controller) controller.abort(); controller = null; cancelTurnstile(); stopThinkingStatus(); setBusy(false);
-    conversationId = null; elements.input.value = ''; removeChildren(elements.sources); removeChildren(elements.securityCard);
-    elements.securityCard.hidden = activeMode !== 'security_lab'; elements.starters.hidden = false;
-    resetTranscript(); setStatus('Chat cleared.'); elements.input.focus();
-  });
-  document.querySelectorAll('.resume-bot-starter').forEach((button) => button.addEventListener('click', () => { elements.input.value = button.dataset.question || ''; elements.input.focus(); }));
-  window.addEventListener('beforeunload', () => controller?.abort());
-  resetTranscript(); setMode('career'); setSentinelState('ready'); showTourStep(0);
+  const showFallback = (turn) => { turn.node.classList.remove('resume-bot-message--thinking'); turn.node.removeAttribute('aria-hidden'); turn.text.textContent = 'The assistant is unavailable right now.'; turn.fallback = true; turn.terminal = true; renderAssistantMarkdown(turn.text, turn.text.textContent); const links = document.createElement('p'); links.className = 'resume-bot-fallback'; const browse = document.createElement('a'); browse.href = '#about'; browse.textContent = 'Browse the resume'; const pdf = document.createElement('a'); pdf.href = 'static/Mario_Sanchez_Resume.pdf'; pdf.download = 'Mario_Sanchez_Resume.pdf'; pdf.textContent = 'download the PDF'; links.append(browse, document.createTextNode(' or '), pdf, document.createTextNode('.')); turn.text.appendChild(links); renderActions(turn); setStatus('The assistant is unavailable right now. You can still browse the resume or download the PDF.', 'error'); };
+  const challengeKind = (prompt) => prompt.includes('Ignore all previous instructions') ? 'injection' : prompt.includes('SSH credentials') ? 'credentials' : prompt.includes('test AI systems for prompt injection') ? 'safe' : '';
+  const send = async () => { const message = elements.input.value.trim(); if (!message) { setStatus('Enter a question first.', 'error'); elements.input.focus(); return; } if (message.length > 500) { setStatus('Questions must be 500 characters or fewer.', 'error'); return; } const requestId = ++requestSequence; const challenge = challengeKind(message); lastPrompt = message; elements.starters.hidden = true; challengesDismissed = true; elements.challenges.hidden = true; setBusy(true); appendMessage('user', message); const turn = createTurn(message, activeMode); activeTurn = turn; startThinkingStatus(turn); const requestController = new AbortController(); controller = requestController; try { const token = await getTurnstileToken(); const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message, conversation_id: conversationId, mode: turn.mode, turnstile_token: token }), signal: requestController.signal }); if (!response.ok) { const refusal = await publicUnsafeMessage(response); if (!refusal) throw new Error(`Request failed with ${response.status}`); turn.node.classList.remove('resume-bot-message--thinking'); turn.node.removeAttribute('aria-hidden'); turn.refusal = true; turn.terminal = true; renderAssistantMarkdown(turn.text, refusal); renderActions(turn); setStatus(challenge === 'injection' || challenge === 'credentials' ? challengeExplanations[challenge] : 'Request safely declined.'); return; } await readSse(response, turn, requestId); if (requestId !== requestSequence || activeTurn !== turn) return; finishTurn(turn); elements.input.value = ''; setStatus(!turn.done?.grounded ? 'Request safely declined.' : challenge === 'safe' && turn.security?.output !== 'fallback' ? challengeExplanations.safe : 'Answer complete.', 'complete'); } catch (error) { if (requestId !== requestSequence || error?.name === 'AbortError') return; showFallback(turn); } finally { if (requestId !== requestSequence) return; stopThinkingStatus(); removeTurnstileWidget(); turnstileReject = null; controller = null; activeTurn = null; setBusy(false); } };
+  const stop = () => { if (!controller || !activeTurn) return; requestSequence += 1; controller.abort(); controller = null; cancelTurnstile(); stopThinkingStatus(); activeTurn.node.classList.remove('resume-bot-message--thinking'); activeTurn.node.removeAttribute('aria-hidden'); if (!activeTurn.receivedDelta) activeTurn.text.textContent = ''; activeTurn.terminal = true; renderActions(activeTurn); activeTurn = null; setBusy(false); setStatus('Stopped here. The server may finish the current generation in the background.'); elements.input.focus(); };
+  const clear = () => { requestSequence += 1; controller?.abort(); controller = null; cancelTurnstile(); stopThinkingStatus(); activeTurn = null; conversationId = null; elements.input.value = ''; elements.starters.hidden = false; challengesDismissed = false; elements.challenges.hidden = activeMode !== 'security_lab'; resetTranscript(); setBusy(false); setStatus('Chat cleared.'); elements.input.focus(); };
+  elements.career.addEventListener('click', () => setMode('career')); elements.security.addEventListener('click', () => setMode('security_lab')); elements.open.addEventListener('click', (event) => openAssistant(event.currentTarget)); elements.launcher.addEventListener('click', (event) => openAssistant(event.currentTarget)); elements.close.addEventListener('click', () => { if (elements.dialog.open) elements.dialog.close(); }); elements.dialog.addEventListener('close', () => { showTourStep(0); const target = navigationTarget; navigationTarget = null; (target || lastOpener)?.focus({ preventScroll: true }); }); tourNextButtons.forEach((button) => button.addEventListener('click', () => showTourStep(activeTourStep + 1))); elements.tourChat.addEventListener('click', openChat); elements.send.addEventListener('click', send); elements.stop.addEventListener('click', stop); elements.clear.addEventListener('click', clear);
+  document.querySelectorAll('.resume-bot-starter, .resume-bot-challenge').forEach((button) => button.addEventListener('click', () => { elements.input.value = button.dataset.question || ''; elements.input.focus(); }));
+  document.querySelectorAll('.resume-bot-tour-source').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); navigateToTarget(link.getAttribute('href')?.slice(1) || ''); }));
+  elements.transcript.addEventListener('click', async (event) => { const button = event.target.closest('button[data-action]'); if (!button) return; if (button.dataset.action === 'follow-up') { elements.input.value = button.dataset.value || ''; elements.input.focus(); } else if (button.dataset.action === 'navigate') { navigateToTarget(button.dataset.value); } else if (button.dataset.action === 'retry') { elements.input.value = button.dataset.value || lastPrompt; elements.input.focus(); send(); } else if (button.dataset.action === 'copy') { const answer = button.closest('.resume-bot-message--assistant')?.querySelector('.resume-bot-answer-text')?.textContent || ''; if (!answer) return; try { await navigator.clipboard.writeText(answer); setStatus('Answer copied.'); } catch (_) { setStatus('Copy is unavailable in this browser. Select the answer text to copy it.', 'error'); } } });
+  elements.send.addEventListener('click', (event) => { if (controller) event.stopImmediatePropagation(); }, true);
+  elements.transcript.addEventListener('click', (event) => { const action = event.target.closest('button[data-action]')?.dataset.action; if (controller && (action === 'follow-up' || action === 'retry')) event.stopImmediatePropagation(); }, true);
+  window.addEventListener('beforeunload', () => controller?.abort()); resetTranscript(); setMode('career'); setSentinelState('ready'); showTourStep(0);
 })();
