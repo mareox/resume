@@ -22,6 +22,8 @@ The sentinel, guided career path, and existing chat work in a real browser on de
 | T8 | Make Turnstile unobtrusive and simplify AI Security Lab status | done | parent | Every Ask remains server-validated; the interaction-only widget stays hidden unless Cloudflare needs visitor action. A fresh production browser shows one collapsed `Safety trace: passed · public sources only` disclosure and no raw implementation chips. |
 | T9 | Add personality-aware adversarial and nonsense-response coverage | done | parent | Eighty-five backend tests and 31 deterministic evaluation cases cover prompt injection, protected-data requests, private facts, nonsense, off-topic prompts, output injection, citation abuse, and degenerate answers while preserving a casual-professional geeky voice. |
 | T10 | Run sanity, security scan, and public end-to-end acceptance | done | parent | Twenty-four frontend checks, backend lint/type/test gates, a scoped security scan, Atlas readiness, the public invalid-token boundary, and real Brave Turnstile-protected asks passed on 2026-08-18. The live checks covered grounded answers, private-data refusal, prompt injection, nonsense, identity, repeated asks, Clear chat, AI Security Lab, and the responsive dialog. |
+| T11 | Deploy and verify Experience v2 | done | parent | Frontend `15e0c447`, Pages run `32196166815`, and backend `31adde48` are live. A normal Brave session passed the six behavior scenarios and all four target viewports; the local application suite passed 58 desktop/mobile checks. |
+| T12 | Clear the strict production latency and publication gates | blocked | parent | All five fixed requests completed, but post-deploy p95 was 40.553 seconds versus a 17.823-second baseline (ratio 2.275; maximum 1.200). The sanitized planning pack is `not_ready`; no journal post was published. |
 
 ## Decisions or blockers
 
@@ -37,11 +39,15 @@ The sentinel, guided career path, and existing chat work in a real browser on de
 
 ## Next action
 
-Monitor production behavior and keep T4 as a separate, intentionally blocked corpus decision; the public homelab journal is not part of the current knowledge base.
+Re-run the fixed five-case production sample from a normal browser and require
+p95 at or below 21.388 seconds before marking the journal package ready. Keep T4
+as a separate, intentionally blocked corpus decision; the public homelab journal
+is not part of the current knowledge base.
 
 ## Experience v2 follow-up
 
-The evidence-aware v2 experience is implemented and locally accepted under the
+The evidence-aware v2 experience is implemented, deployed, and behavior-
+accepted under the
 executor-grade plan at
 `homelab-infra/atlas/resume-bot/plans/resume-bot-experience-v2-build-plan.md`.
 It replaces the nested tour/chat presentation with mutually exclusive views,
@@ -49,10 +55,10 @@ adds answer-owned public evidence and deterministic follow-ups, makes Stop,
 Retry, Copy, and Clear recoverable, and keeps Security Lab details behind a
 plain-language disclosure.
 
-Local acceptance covers 52 desktop/mobile Playwright checks, 118 backend tests,
+Local acceptance covers 58 desktop/mobile Playwright application checks, 118 backend tests,
 41 deterministic evaluation cases, secret scanning, visual review, and fresh
 code, UX/accessibility, and verification passes with no unresolved P0/P1
-findings. Deployment remains ordered: publish the backward-compatible frontend
-against the v1 API first, prove it in a real browser, then release the additive
-v2 backend. T4 remains blocked and the public homelab journal is not part of the
-v2 corpus.
+findings. The backward-compatible frontend was proven against v1 before the
+additive v2 backend was released. Live behavior and responsive geometry passed;
+the strict production p95 comparison did not, so publication remains blocked.
+T4 remains blocked and the public homelab journal is not part of the v2 corpus.

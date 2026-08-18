@@ -1,6 +1,12 @@
 {
   "frontend_previous_commit": "4fa29cf6d126e64fdd7bd11b233e9a40ad3a3de3",
-  "frontend_release_commit": "ab7a398427cb701a954db386d4b2cc87d48e3df0",
-  "pages_run_id": 32188252590,
-  "deployed_at_utc": "2026-08-18T21:33:23Z"
+  "frontend_release_commit": "15e0c447c002ed4d7c09340cba0a7ef8b50d1005",
+  "pages_run_id": 32196166815,
+  "deployed_at_utc": "2026-08-18T23:12:39Z",
+  "backend_release_commit": "31adde48d4581e05abd9f1cd96d2e1d266ad5114",
+  "backend_previous_release": "9101b52fe5b90e77a0986932dda37c81d7aa5af8",
+  "live_behavior_scenarios_passed": true,
+  "live_viewports_passed": true,
+  "production_latency_budget_passed": false,
+  "journal_ready": false
 }
