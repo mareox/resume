@@ -187,13 +187,31 @@
     if (activeMode !== 'security_lab' || !data || typeof data !== 'object') return;
     removeChildren(elements.securityCard);
     elements.securityCard.hidden = false;
-    ['input', 'turnstile', 'retrieval', 'output'].forEach((key) => {
-      if (typeof data[key] !== 'string') return;
-      const item = document.createElement('span');
-      item.className = 'resume-bot-security-item';
-      item.textContent = `${key}: ${data[key]}`;
-      elements.securityCard.appendChild(item);
+    const usedFallback = data.output === 'fallback';
+    const details = document.createElement('details');
+    details.className = 'resume-bot-security-details';
+    const summary = document.createElement('summary');
+    summary.textContent = usedFallback
+      ? 'Safety trace: guarded fallback used'
+      : 'Safety trace: passed · public sources only';
+    const checks = document.createElement('ul');
+    checks.className = 'resume-bot-security-checks';
+    [
+      ['Input guard', data.input === 'allowed' ? 'Passed' : 'Checked'],
+      ['Visitor check', data.turnstile === 'passed' ? 'Passed' : 'Checked'],
+      ['Knowledge boundary', data.retrieval === 'public_resume' ? 'Public resume' : 'No public match'],
+      ['Answer guard', usedFallback ? 'Safe fallback' : 'Passed'],
+    ].forEach(([label, outcome]) => {
+      const item = document.createElement('li');
+      const name = document.createElement('span');
+      const result = document.createElement('strong');
+      name.textContent = label;
+      result.textContent = outcome;
+      item.append(name, result);
+      checks.appendChild(item);
     });
+    details.append(summary, checks);
+    elements.securityCard.appendChild(details);
   };
   const showFallback = () => {
     setStatus('The assistant is unavailable right now. You can still browse the resume or download the PDF.', 'error');
@@ -243,7 +261,7 @@
     const effectiveSiteKey = siteKey === siteKeyMarker ? 'TEST' : siteKey;
     const size = window.matchMedia('(max-width: 480px)').matches ? 'compact' : 'flexible';
     const settle = (callback) => (value) => { turnstileReject = null; callback(value); };
-    const options = { sitekey: effectiveSiteKey, action: 'resume_chat', size, callback: settle(resolve), 'error-callback': settle(() => reject(new Error('Turnstile failed'))), 'expired-callback': settle(() => reject(new Error('Turnstile expired'))) };
+    const options = { sitekey: effectiveSiteKey, action: 'resume_chat', appearance: 'interaction-only', execution: 'execute', size, callback: settle(resolve), 'error-callback': settle(() => reject(new Error('Turnstile failed'))), 'expired-callback': settle(() => reject(new Error('Turnstile expired'))) };
     turnstileWidgetId = window.turnstile.render(elements.turnstile, options);
     window.turnstile.execute(turnstileWidgetId);
   });

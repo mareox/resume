@@ -19,6 +19,9 @@ The sentinel, guided career path, and existing chat work in a real browser on de
 | T5 | Make processing feedback prominent, playful, and observable during real latency | done | parent | A held-request browser test observes the initial status, a second original action message, the coffee message, streaming, and completion on desktop and mobile; the public site visibly rendered `Thinking it through…` in both the transcript and fixed status lane before completing. |
 | T6 | Replace generic unsupported-answer copy with a grounded conversational redirect | done | parent | Seventy-four backend tests prove private-family questions bypass retrieval and generation; the public browser returned the verified 50+ service/four-node Proxmox redirect without disclosing or guessing private facts, then produced a normal grounded project answer. |
 | T7 | Repair the responsive chat layout so the transcript scrolls while controls stay visible | done | parent | Twenty-four Playwright/axe checks pass across desktop and mobile, including 864×768 and 320×568 long-transcript cases; a public 864×768 screenshot shows the transcript scrolling while status, composer, and Ask remain fully visible. |
+| T8 | Make Turnstile unobtrusive and simplify AI Security Lab status | doing | parent | Each Ask still receives server-side Turnstile validation, but the widget stays hidden unless interaction is required; the lab summarizes controls without raw implementation labels or layout clutter. |
+| T9 | Add personality-aware adversarial and nonsense-response coverage | todo | parent | Deterministic and model-boundary tests cover prompt injection, protected-data requests, private facts, nonsense, off-topic prompts, output injection, citation abuse, and degenerate answers while preserving a casual-professional geeky voice. |
+| T10 | Run sanity, security scan, and public end-to-end acceptance | todo | parent | Frontend/backend suites, scoped security report, and a real Turnstile-protected public browser run prove layout, repeated asks, Clear chat, safe adversarial behavior, grounded answers, and service health. |
 
 ## Decisions or blockers
 
@@ -34,4 +37,4 @@ The sentinel, guided career path, and existing chat work in a real browser on de
 
 ## Next action
 
-Conversation polish is complete and live. T4 remains a separate, intentionally blocked corpus decision.
+Complete T8–T10 and keep T4 as a separate, intentionally blocked corpus decision.

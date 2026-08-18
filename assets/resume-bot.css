@@ -26,10 +26,18 @@
 .resume-bot-status[data-state="thinking"]::before, .resume-bot-status[data-state="responding"]::before { background: var(--accent-green); border-radius: 50%; content: ""; flex: 0 0 auto; height: 0.45rem; width: 0.45rem; }
 .resume-bot-status[data-state="thinking"]::before { animation: resume-bot-status-pulse 1.1s ease-in-out infinite; }
 .resume-bot-status[data-state="error"] { color: var(--accent-yellow); }
-.resume-bot-source, .resume-bot-security-item { border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.75rem; padding: 0.35rem 0.5rem; }
+.resume-bot-source { border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.75rem; padding: 0.35rem 0.5rem; }
 .resume-bot-source:hover { color: var(--accent-blue); }
 .resume-bot-security[hidden], .resume-bot-sources:empty { display: none; }
-.resume-bot-turnstile { min-width: 0; }
+.resume-bot-security { display: block; }
+.resume-bot-security-details { border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.75rem; overflow: hidden; }
+.resume-bot-security-details summary { color: var(--accent-blue); cursor: pointer; list-style-position: inside; padding: 0.45rem 0.6rem; }
+.resume-bot-security-details summary:hover { color: var(--text-primary); }
+.resume-bot-security-checks { border-top: 1px solid var(--border-color); display: grid; gap: 0.45rem; list-style: none; margin: 0; padding: 0.6rem; }
+.resume-bot-security-checks li { align-items: center; display: flex; gap: 1rem; justify-content: space-between; }
+.resume-bot-security-checks strong { color: var(--text-primary); font-weight: 600; }
+.resume-bot-turnstile { max-width: 100%; min-width: 0; overflow: hidden; }
+.resume-bot-turnstile:empty { display: none; }
 .resume-bot-composer { align-items: flex-end; border-top: 1px solid var(--border-color); padding: 1rem; }
 .resume-bot-input-wrap { flex: 1 1 360px; }
 .resume-bot-input-label { color: var(--text-secondary); display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; }

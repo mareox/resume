@@ -92,6 +92,8 @@ test('starter question streams inert text and a public source card', async ({ pa
   await expect
     .poll(() => page.evaluate(() => window.__resumeBotTurnstile?.action))
     .toBe('resume_chat');
+  expect(await page.evaluate(() => window.__resumeBotTurnstile.appearance)).toBe('interaction-only');
+  expect(await page.evaluate(() => window.__resumeBotTurnstile.execution)).toBe('execute');
   expect(await page.evaluate(() => window.__resumeBotTurnstile.size)).toBe(
     page.viewportSize().width <= 480 ? 'compact' : 'flexible',
   );
@@ -188,6 +190,15 @@ test('security mode, clear action, theme, reduced motion, and narrow layout work
   await page.locator('#resume-bot-input').fill('What AI security work have you done?');
   await page.getByRole('button', { name: 'Ask', exact: true }).click();
   await expect(page.locator('#resume-bot-security')).toBeVisible();
+  const safetyTrace = page.locator('.resume-bot-security-details');
+  await expect(safetyTrace.getByText('Safety trace: passed · public sources only')).toBeVisible();
+  await expect(safetyTrace).not.toContainText('turnstile: passed');
+  await expect(safetyTrace).not.toContainText('retrieval: public_resume');
+  await expect(safetyTrace).toHaveJSProperty('open', false);
+  await safetyTrace.locator('summary').click();
+  await expect(safetyTrace).toContainText('Visitor check');
+  await expect(safetyTrace).toContainText('Knowledge boundary');
+  await expect(safetyTrace).toContainText('Public resume');
   await page.getByRole('button', { name: 'Clear chat' }).click();
   await expect(page.locator('#resume-bot-starters')).toBeVisible();
   await expect(page.locator('#resume-bot-transcript')).toContainText('Ask a question or choose a starter prompt to begin.');
