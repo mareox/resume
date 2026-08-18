@@ -16,9 +16,9 @@ The sentinel, guided career path, and existing chat work in a real browser on de
 | T2 | Implement the local CSS/SVG sentinel, accessible dialog, and 2–3-card career tour | done | parent | Existing chat element IDs stay unique; tour makes no API call; chat handoff retains the current SSE/Turnstile contract. |
 | T3 | Expand browser and accessibility coverage, then deploy the scoped static-site change | done | parent | Twenty Playwright/axe checks pass on desktop and mobile; the public GitHub Pages flow completed valid Turnstile-protected refusal and streamed-answer tests on 2026-08-17. |
 | T4 | Decide whether to add a curated public homelab-journal source manifest as a separate corpus release | blocked | parent | Explicit scope approval, selected public sources, sensitive-detail review, and corpus grounding/citation evaluations. |
-| T5 | Make processing feedback prominent, playful, and observable during real latency | doing | parent | Browser test holds the request open, observes multiple original status messages in the visible chat chrome, then observes the streaming and completion states. |
-| T6 | Replace generic unsupported-answer copy with a grounded conversational redirect | todo | parent | Backend tests prove private facts remain undisclosed while the response offers one relevant, verified public topic; live browser test covers the children question. |
-| T7 | Repair the responsive chat layout so the transcript scrolls while controls stay visible | todo | parent | Desktop, short-laptop, tablet, and mobile screenshots show the header, progress, composer, and Ask control without dialog overflow or clipped content; axe has no serious/critical findings. |
+| T5 | Make processing feedback prominent, playful, and observable during real latency | done | parent | A held-request browser test observes the initial status, a second original action message, the coffee message, streaming, and completion on desktop and mobile; the public site visibly rendered `Thinking it through…` in both the transcript and fixed status lane before completing. |
+| T6 | Replace generic unsupported-answer copy with a grounded conversational redirect | done | parent | Seventy-four backend tests prove private-family questions bypass retrieval and generation; the public browser returned the verified 50+ service/four-node Proxmox redirect without disclosing or guessing private facts, then produced a normal grounded project answer. |
+| T7 | Repair the responsive chat layout so the transcript scrolls while controls stay visible | done | parent | Twenty-four Playwright/axe checks pass across desktop and mobile, including 864×768 and 320×568 long-transcript cases; a public 864×768 screenshot shows the transcript scrolling while status, composer, and Ask remain fully visible. |
 
 ## Decisions or blockers
 
@@ -34,4 +34,4 @@ The sentinel, guided career path, and existing chat work in a real browser on de
 
 ## Next action
 
-Implement and regression-test T5, then continue through the grounded-response and responsive-layout gates.
+Conversation polish is complete and live. T4 remains a separate, intentionally blocked corpus decision.
