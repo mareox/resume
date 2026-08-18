@@ -15,6 +15,7 @@
     open: document.getElementById('resume-bot-open'), launcher: document.getElementById('resume-bot-launcher'),
     dialog: document.getElementById('resume-bot-dialog'), close: document.getElementById('resume-bot-close'),
     tour: document.getElementById('resume-bot-tour'), chat: document.getElementById('resume-bot-chat'), tourChat: document.getElementById('resume-bot-tour-chat'),
+    starters: document.getElementById('resume-bot-starters'),
   };
   const tourSteps = Array.from(document.querySelectorAll('[data-resume-bot-tour-step]'));
   const tourNextButtons = Array.from(document.querySelectorAll('[data-resume-bot-tour-next]'));
@@ -41,6 +42,54 @@
     empty.className = 'resume-bot-empty';
     empty.textContent = 'Ask a question or choose a starter prompt to begin.';
     elements.transcript.appendChild(empty);
+  };
+  const appendInlineMarkdown = (element, text) => {
+    text.split(/(\*\*[^*\n]+\*\*)/g).forEach((part) => {
+      if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+        const strong = document.createElement('strong');
+        strong.textContent = part.slice(2, -2);
+        element.appendChild(strong);
+        return;
+      }
+      element.appendChild(document.createTextNode(part));
+    });
+  };
+  const renderAssistantMarkdown = (element, text) => {
+    removeChildren(element);
+    let paragraphLines = [];
+    let list = null;
+    const flushParagraph = () => {
+      if (!paragraphLines.length) return;
+      const paragraph = document.createElement('p');
+      appendInlineMarkdown(paragraph, paragraphLines.join(' '));
+      element.appendChild(paragraph);
+      paragraphLines = [];
+    };
+    const closeList = () => { list = null; };
+    text.replace(/\r\n?/g, '\n').split('\n').forEach((rawLine) => {
+      const line = rawLine.trim();
+      const item = line.match(/^(?:[-*]|\d+[.)])\s+(.+)$/);
+      if (item) {
+        flushParagraph();
+        const ordered = /^\d+[.)]/.test(line);
+        if (!list || list.tagName !== (ordered ? 'OL' : 'UL')) {
+          list = document.createElement(ordered ? 'ol' : 'ul');
+          element.appendChild(list);
+        }
+        const listItem = document.createElement('li');
+        appendInlineMarkdown(listItem, item[1]);
+        list.appendChild(listItem);
+        return;
+      }
+      if (!line) {
+        flushParagraph();
+        closeList();
+        return;
+      }
+      closeList();
+      paragraphLines.push(line);
+    });
+    flushParagraph();
   };
   const appendMessage = (role, text) => {
     elements.transcript.querySelector('.resume-bot-empty')?.remove();
@@ -153,6 +202,7 @@
     const message = elements.input.value.trim();
     if (!message) { setStatus('Enter a question first.', 'error'); elements.input.focus(); return; }
     if (message.length > 500) { setStatus('Questions must be 500 characters or fewer.', 'error'); return; }
+    elements.starters.hidden = true;
     setBusy(true); setStatus('Verifying and preparing a grounded answer…'); appendMessage('user', message);
     const assistantNode = appendMessage('assistant', ''); controller = new AbortController();
     try {
@@ -161,6 +211,7 @@
       if (!response.ok) throw new Error(`Request failed with ${response.status}`);
       await readSse(response, assistantNode);
       if (!assistantNode.textContent) throw new Error('Empty answer');
+      renderAssistantMarkdown(assistantNode, assistantNode.textContent);
       elements.input.value = ''; setStatus('Answer complete.');
     } catch (error) {
       assistantNode.remove(); showFallback();
@@ -181,7 +232,8 @@
   elements.clear.addEventListener('click', () => {
     if (controller) controller.abort();
     conversationId = null; elements.input.value = ''; removeChildren(elements.sources); removeChildren(elements.securityCard);
-    elements.securityCard.hidden = activeMode !== 'security_lab'; resetTranscript(); setStatus('Chat cleared.'); elements.input.focus();
+    elements.securityCard.hidden = activeMode !== 'security_lab'; elements.starters.hidden = false;
+    resetTranscript(); setStatus('Chat cleared.'); elements.input.focus();
   });
   document.querySelectorAll('.resume-bot-starter').forEach((button) => button.addEventListener('click', () => { elements.input.value = button.dataset.question || ''; elements.input.focus(); }));
   window.addEventListener('beforeunload', () => controller?.abort());

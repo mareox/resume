@@ -22,7 +22,7 @@ async function installApiStub(page, status = 200) {
         { event: 'meta', data: { trace_id: 'trace', conversation_id: 'conversation', mode: 'career' } },
         { event: 'security', data: { input: 'allowed', turnstile: 'passed', retrieval: 'public_resume', output: 'passed' } },
         { event: 'sources', data: { items: [{ id: 'experience', title: 'Experience', url: 'https://mareox.github.io/resume/#experience' }] } },
-        { event: 'delta', data: { text: 'Safe answer: <img src=x onerror=window.__resumeBotXss=true>' } },
+        { event: 'delta', data: { text: 'Safe answer: **automation**\n\n1. First public result\n2. <img src=x onerror=window.__resumeBotXss=true>' } },
         { event: 'done', data: { grounded: true, source_ids: ['experience'], latency_ms: 12 } },
       ]),
     });
@@ -85,9 +85,13 @@ test('starter question streams inert text and a public source card', async ({ pa
   );
   const answer = page.locator('.resume-bot-message--assistant').last();
   await expect(answer).toContainText('<img src=x onerror=window.__resumeBotXss=true>');
+  await expect(answer.getByRole('strong')).toHaveText('automation');
+  await expect(answer.getByRole('listitem')).toHaveCount(2);
+  await expect(page.locator('#resume-bot-starters')).toBeHidden();
   await expect(page.locator('.resume-bot-source')).toHaveAttribute('href', 'https://mareox.github.io/resume/#experience');
   await expect(page.locator('img')).toHaveCount(0);
   await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
+  await expect(page.locator('#resume-bot-dialog').evaluate((dialog) => dialog.scrollHeight <= dialog.clientHeight)).toBeTruthy();
 });
 
 test('security mode, clear action, theme, reduced motion, and narrow layout work', async ({ page }) => {
@@ -106,6 +110,7 @@ test('security mode, clear action, theme, reduced motion, and narrow layout work
   await page.getByRole('button', { name: 'Ask', exact: true }).click();
   await expect(page.locator('#resume-bot-security')).toBeVisible();
   await page.getByRole('button', { name: 'Clear chat' }).click();
+  await expect(page.locator('#resume-bot-starters')).toBeVisible();
   await expect(page.locator('#resume-bot-transcript')).toContainText('Ask a question or choose a starter prompt to begin.');
   await page.keyboard.press('Escape');
   await page.locator('.theme-toggle').click();
