@@ -19,9 +19,9 @@ The sentinel, guided career path, and existing chat work in a real browser on de
 | T5 | Make processing feedback prominent, playful, and observable during real latency | done | parent | A held-request browser test observes the initial status, a second original action message, the coffee message, streaming, and completion on desktop and mobile; the public site visibly rendered `Thinking it through…` in both the transcript and fixed status lane before completing. |
 | T6 | Replace generic unsupported-answer copy with a grounded conversational redirect | done | parent | Seventy-four backend tests prove private-family questions bypass retrieval and generation; the public browser returned the verified 50+ service/four-node Proxmox redirect without disclosing or guessing private facts, then produced a normal grounded project answer. |
 | T7 | Repair the responsive chat layout so the transcript scrolls while controls stay visible | done | parent | Twenty-four Playwright/axe checks pass across desktop and mobile, including 864×768 and 320×568 long-transcript cases; a public 864×768 screenshot shows the transcript scrolling while status, composer, and Ask remain fully visible. |
-| T8 | Make Turnstile unobtrusive and simplify AI Security Lab status | doing | parent | Each Ask still receives server-side Turnstile validation, but the widget stays hidden unless interaction is required; the lab summarizes controls without raw implementation labels or layout clutter. |
-| T9 | Add personality-aware adversarial and nonsense-response coverage | todo | parent | Deterministic and model-boundary tests cover prompt injection, protected-data requests, private facts, nonsense, off-topic prompts, output injection, citation abuse, and degenerate answers while preserving a casual-professional geeky voice. |
-| T10 | Run sanity, security scan, and public end-to-end acceptance | todo | parent | Frontend/backend suites, scoped security report, and a real Turnstile-protected public browser run prove layout, repeated asks, Clear chat, safe adversarial behavior, grounded answers, and service health. |
+| T8 | Make Turnstile unobtrusive and simplify AI Security Lab status | done | parent | Every Ask remains server-validated; the interaction-only widget stays hidden unless Cloudflare needs visitor action. A fresh production browser shows one collapsed `Safety trace: passed · public sources only` disclosure and no raw implementation chips. |
+| T9 | Add personality-aware adversarial and nonsense-response coverage | done | parent | Eighty-five backend tests and 31 deterministic evaluation cases cover prompt injection, protected-data requests, private facts, nonsense, off-topic prompts, output injection, citation abuse, and degenerate answers while preserving a casual-professional geeky voice. |
+| T10 | Run sanity, security scan, and public end-to-end acceptance | done | parent | Twenty-four frontend checks, backend lint/type/test gates, a scoped security scan, Atlas readiness, the public invalid-token boundary, and real Brave Turnstile-protected asks passed on 2026-08-18. The live checks covered grounded answers, private-data refusal, prompt injection, nonsense, identity, repeated asks, Clear chat, AI Security Lab, and the responsive dialog. |
 
 ## Decisions or blockers
 
@@ -29,7 +29,7 @@ The sentinel, guided career path, and existing chat work in a real browser on de
 - The primary invitation is `Walk me through Mario's career`; it opens a short guided introduction followed by free chat.
 - The existing `#ask-ai` section remains a visible fallback and deep-link target.
 - The current corpus has six resume-derived documents. The public homelab journal is not a source yet and must never be bulk-crawled.
-- Public completion still requires a normal browser to obtain a valid Turnstile token and receive a streamed answer.
+- Public browser acceptance completed in Brave on 2026-08-18 with valid Turnstile-protected grounded, adversarial, and conversational requests.
 - On 2026-08-17, the live DNS record was an unintended proxied Cloudflare Tunnel CNAME that returned a 404. It was restored to the intended DNS-only `proxy.mareoxlan.com` CNAME; public authoritative DNS now resolves it to the Caddy ingress.
 - Processing copy will be original and inspired by the concise, active cadence of coding agents; it will not reproduce Claude Code strings.
 - Conversational redirects may mention only facts already present in the approved public corpus. They must not infer, confirm, or deny private biographical details.
@@ -37,4 +37,4 @@ The sentinel, guided career path, and existing chat work in a real browser on de
 
 ## Next action
 
-Complete T8–T10 and keep T4 as a separate, intentionally blocked corpus decision.
+Monitor production behavior and keep T4 as a separate, intentionally blocked corpus decision; the public homelab journal is not part of the current knowledge base.
