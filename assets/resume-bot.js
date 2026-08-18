@@ -25,6 +25,8 @@
   let conversationId = null;
   let controller = null;
   let turnstileWidgetId = null;
+  let turnstileReject = null;
+  let requestSequence = 0;
   let activeTourStep = 0;
   let lastOpener = elements.launcher;
 
@@ -36,6 +38,17 @@
     elements.status.setAttribute('role', state === 'error' ? 'alert' : 'status');
   };
   const setBusy = (busy) => { elements.send.disabled = busy; elements.input.disabled = busy; elements.clear.disabled = false; setSentinelState(busy ? 'thinking' : 'ready'); };
+  const removeTurnstileWidget = () => {
+    if (turnstileWidgetId !== null && window.turnstile) window.turnstile.remove(turnstileWidgetId);
+    turnstileWidgetId = null;
+    removeChildren(elements.turnstile);
+  };
+  const cancelTurnstile = () => {
+    const reject = turnstileReject;
+    turnstileReject = null;
+    removeTurnstileWidget();
+    if (reject) reject(new DOMException('Verification cancelled', 'AbortError'));
+  };
   const resetTranscript = () => {
     removeChildren(elements.transcript);
     const empty = document.createElement('p');
@@ -192,32 +205,54 @@
   };
   const getTurnstileToken = () => new Promise((resolve, reject) => {
     if (!window.turnstile || !siteKey || (siteKey === siteKeyMarker && !isLocalTest)) { reject(new Error('Turnstile is not configured')); return; }
+    cancelTurnstile();
+    turnstileReject = reject;
     const effectiveSiteKey = siteKey === siteKeyMarker ? 'TEST' : siteKey;
     const size = window.matchMedia('(max-width: 480px)').matches ? 'compact' : 'flexible';
-    const options = { sitekey: effectiveSiteKey, action: 'resume_chat', size, callback: resolve, 'error-callback': () => reject(new Error('Turnstile failed')), 'expired-callback': () => reject(new Error('Turnstile expired')) };
-    if (turnstileWidgetId === null) turnstileWidgetId = window.turnstile.render(elements.turnstile, options);
+    const settle = (callback) => (value) => { turnstileReject = null; callback(value); };
+    const options = { sitekey: effectiveSiteKey, action: 'resume_chat', size, callback: settle(resolve), 'error-callback': settle(() => reject(new Error('Turnstile failed'))), 'expired-callback': settle(() => reject(new Error('Turnstile expired'))) };
+    turnstileWidgetId = window.turnstile.render(elements.turnstile, options);
     window.turnstile.execute(turnstileWidgetId);
   });
+  const publicUnsafeMessage = async (response) => {
+    if (response.status !== 400) return '';
+    try {
+      const payload = await response.json();
+      return payload?.error?.code === 'unsafe_input' && typeof payload.error.message === 'string'
+        ? payload.error.message
+        : '';
+    } catch (_) {
+      return '';
+    }
+  };
   const send = async () => {
     const message = elements.input.value.trim();
     if (!message) { setStatus('Enter a question first.', 'error'); elements.input.focus(); return; }
     if (message.length > 500) { setStatus('Questions must be 500 characters or fewer.', 'error'); return; }
+    const requestId = ++requestSequence;
     elements.starters.hidden = true;
+    removeChildren(elements.sources); removeChildren(elements.securityCard);
     setBusy(true); setStatus('Verifying and preparing a grounded answer…'); appendMessage('user', message);
-    const assistantNode = appendMessage('assistant', ''); controller = new AbortController();
+    const assistantNode = appendMessage('assistant', ''); const requestController = new AbortController(); controller = requestController;
     try {
       const token = await getTurnstileToken();
-      const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message, conversation_id: conversationId, mode: activeMode, turnstile_token: token }), signal: controller.signal });
-      if (!response.ok) throw new Error(`Request failed with ${response.status}`);
+      const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message, conversation_id: conversationId, mode: activeMode, turnstile_token: token }), signal: requestController.signal });
+      if (!response.ok) {
+        const refusal = await publicUnsafeMessage(response);
+        if (!refusal) throw new Error(`Request failed with ${response.status}`);
+        assistantNode.textContent = refusal; renderAssistantMarkdown(assistantNode, refusal);
+        elements.input.value = ''; setStatus('Request safely declined.'); return;
+      }
       await readSse(response, assistantNode);
       if (!assistantNode.textContent) throw new Error('Empty answer');
       renderAssistantMarkdown(assistantNode, assistantNode.textContent);
       elements.input.value = ''; setStatus('Answer complete.');
     } catch (error) {
+      if (requestId !== requestSequence || error?.name === 'AbortError') return;
       assistantNode.remove(); showFallback();
     } finally {
-      if (turnstileWidgetId !== null && window.turnstile) window.turnstile.reset(turnstileWidgetId);
-      controller = null; setBusy(false);
+      if (requestId !== requestSequence) return;
+      removeTurnstileWidget(); turnstileReject = null; controller = null; setBusy(false);
     }
   };
   elements.career.addEventListener('click', () => setMode('career'));
@@ -230,7 +265,7 @@
   elements.tourChat.addEventListener('click', openChat);
   elements.send.addEventListener('click', send);
   elements.clear.addEventListener('click', () => {
-    if (controller) controller.abort();
+    requestSequence += 1; if (controller) controller.abort(); controller = null; cancelTurnstile(); setBusy(false);
     conversationId = null; elements.input.value = ''; removeChildren(elements.sources); removeChildren(elements.securityCard);
     elements.securityCard.hidden = activeMode !== 'security_lab'; elements.starters.hidden = false;
     resetTranscript(); setStatus('Chat cleared.'); elements.input.focus();

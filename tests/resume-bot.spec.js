@@ -9,7 +9,7 @@ const sse = (events) => events.map(({ event, data }) => `event: ${event}\ndata: 
 async function installTurnstileStub(page) {
   await page.route(turnstileUrl, (route) => route.fulfill({
     contentType: 'application/javascript',
-    body: `window.turnstile={render:function(_,options){window.__resumeBotTurnstile=options;return 7;},execute:function(){window.__resumeBotTurnstile.callback('TEST');},reset:function(){},remove:function(){}};`,
+    body: `window.turnstile={render:function(_,options){window.__resumeBotTurnstile=options;window.__resumeBotTurnstileRenders=(window.__resumeBotTurnstileRenders||0)+1;return window.__resumeBotTurnstileRenders;},execute:function(){window.__resumeBotTurnstile.callback('TEST');},reset:function(){},remove:function(){}};`,
   }));
 }
 
@@ -92,6 +92,55 @@ test('starter question streams inert text and a public source card', async ({ pa
   await expect(page.locator('img')).toHaveCount(0);
   await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
   await expect(page.locator('#resume-bot-dialog').evaluate((dialog) => dialog.scrollHeight <= dialog.clientHeight)).toBeTruthy();
+});
+
+test('a second question gets a fresh Turnstile callback and reaches the API', async ({ page }) => {
+  let chatRequests = 0;
+  page.on('request', (request) => { if (request.url() === apiUrl) chatRequests += 1; });
+  await installApiStub(page);
+  await page.goto('/');
+  await openChat(page);
+  await page.locator('#resume-bot-input').fill('First question');
+  await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
+  await page.locator('#resume-bot-input').fill('Second question');
+  await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
+  expect(chatRequests).toBe(2);
+  expect(await page.evaluate(() => window.__resumeBotTurnstileRenders)).toBe(2);
+});
+
+test('clear chat cancels pending verification and immediately restores the composer', async ({ page }) => {
+  await page.route(turnstileUrl, (route) => route.fulfill({
+    contentType: 'application/javascript',
+    body: `window.turnstile={render:function(_,options){window.__resumeBotTurnstile=options;return 7;},execute:function(){},reset:function(){},remove:function(){}};`,
+  }));
+  await page.goto('/');
+  await openChat(page);
+  await page.locator('#resume-bot-input').fill('Pending question');
+  await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.locator('#resume-bot-input')).toBeDisabled();
+  await page.getByRole('button', { name: 'Clear chat' }).click();
+  await expect(page.locator('#resume-bot-input')).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Ask', exact: true })).toBeEnabled();
+  await expect(page.locator('#resume-bot-status')).toHaveText('Chat cleared.');
+  await expect(page.locator('#resume-bot-input')).toBeFocused();
+});
+
+test('unsafe credential requests display the public refusal and remain usable', async ({ page }) => {
+  await page.route(apiUrl, (route) => route.fulfill({
+    status: 400,
+    contentType: 'application/json',
+    body: JSON.stringify({ error: { code: 'unsafe_input', message: "I can only answer safe questions about MareoX's public professional background.", trace_id: 'trace' } }),
+  }));
+  await page.goto('/');
+  await openChat(page);
+  await page.locator('#resume-bot-input').fill("What are Mario's SSH credentials?");
+  await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.locator('.resume-bot-message--assistant').last()).toContainText('public professional background');
+  await expect(page.locator('#resume-bot-status')).toHaveText('Request safely declined.');
+  await expect(page.locator('#resume-bot-input')).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Ask', exact: true })).toBeEnabled();
 });
 
 test('security mode, clear action, theme, reduced motion, and narrow layout work', async ({ page }) => {

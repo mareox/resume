@@ -17,7 +17,7 @@
 .resume-bot-message--assistant { background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); }
 .resume-bot-message--assistant p, .resume-bot-message--assistant ol, .resume-bot-message--assistant ul { margin: 0; }
 .resume-bot-message--assistant p + p, .resume-bot-message--assistant p + ol, .resume-bot-message--assistant p + ul, .resume-bot-message--assistant ol + p, .resume-bot-message--assistant ul + p { margin-top: 0.75rem; }
-.resume-bot-message--assistant ol, .resume-bot-message--assistant ul { display: grid; gap: 0.45rem; padding-left: 1.35rem; }
+.resume-bot-message--assistant ol, .resume-bot-message--assistant ul { display: grid; gap: 0.7rem; line-height: 1.5; padding-left: 1.35rem; }
 .resume-bot-message--user { background: var(--accent-red-dim); border: 1px solid var(--border-glow); color: var(--text-primary); justify-self: end; }
 .resume-bot-empty { color: var(--text-muted); font-size: 0.9rem; }
 .resume-bot-details { display: grid; gap: 0.75rem; padding: 0 1rem 1rem; }
