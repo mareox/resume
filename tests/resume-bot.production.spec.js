@@ -102,7 +102,12 @@ async function ask(page, prompt, terminalStatus, testInfo) {
   const started = performance.now();
   await page.getByRole('button', { name: 'Ask', exact: true }).click();
   await expect(page.locator('#resume-bot-status')).toHaveText(terminalStatus, { timeout: 180_000 });
-  return Math.round(performance.now() - started);
+  await expect.poll(() => page.evaluate(() => window.__resumeBotTimingEvents?.length || 0)).toBeGreaterThan(0);
+  const timing = await page.evaluate(() => window.__resumeBotTimingEvents.shift());
+  for (const key of ['turnstile_ms', 'post_token_ms', 'total_ms']) {
+    if (!Number.isFinite(timing?.[key]) || timing[key] < 0) throw new Error(`Invalid ${key}.`);
+  }
+  return { elapsed_ms: Math.round(performance.now() - started), timing };
 }
 
 async function verifyGeometry(page) {
@@ -142,6 +147,13 @@ test.describe('public Resume Bot production experience', () => {
     expect(testInfo.project.name).toBe(productionProject);
     testInfo.setTimeout(180_000);
     expect(testInfo.timeout).toBe(180_000);
+    await page.addInitScript(() => {
+      window.__resumeBotTimingEvents = [];
+      window.addEventListener('resume-bot:timing', (event) => {
+        const { turnstile_ms, post_token_ms, total_ms } = event.detail || {};
+        window.__resumeBotTimingEvents.push({ turnstile_ms, post_token_ms, total_ms });
+      });
+    });
     await page.goto(productionUrl, { waitUntil: 'domcontentloaded' });
   });
 
@@ -149,7 +161,8 @@ test.describe('public Resume Bot production experience', () => {
     await ask(page, 'What does Mario do?', 'Answer complete.', testInfo);
     for (const [id, prompt] of latencyCases) {
       try {
-        const elapsed_ms = await ask(page, prompt, 'Answer complete.', testInfo);
+        const { elapsed_ms, timing } = await ask(page, prompt, 'Answer complete.', testInfo);
+        console.log(`[resume-bot timing] ${id} turnstile_ms=${timing.turnstile_ms} post_token_ms=${timing.post_token_ms} total_ms=${timing.total_ms}`);
         results.latency_cases.push({ id, passed: true, elapsed_ms });
       } catch (error) {
         results.latency_cases.push({ id, passed: false, elapsed_ms: 0 });

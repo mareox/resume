@@ -17,7 +17,7 @@ const successfulSse = () => sse([
 async function installTurnstileStub(page) {
   await page.route(turnstileUrl, (route) => route.fulfill({
     contentType: 'application/javascript',
-    body: `window.turnstile={render:function(_,options){window.__resumeBotTurnstile=options;window.__resumeBotTurnstileRenders=(window.__resumeBotTurnstileRenders||0)+1;return window.__resumeBotTurnstileRenders;},execute:function(){window.__resumeBotTurnstile.callback('TEST');},reset:function(){},remove:function(){}};`,
+    body: `window.turnstile={render:function(_,options){window.__resumeBotTurnstile=options;window.__resumeBotTurnstileRenders=(window.__resumeBotTurnstileRenders||0)+1;return window.__resumeBotTurnstileRenders;},execute:function(){window.__resumeBotTurnstileExecutions=(window.__resumeBotTurnstileExecutions||0)+1;window.__resumeBotTurnstile.callback('TEST_'+window.__resumeBotTurnstileExecutions);},reset:function(){window.__resumeBotTurnstileResets=(window.__resumeBotTurnstileResets||0)+1;},remove:function(){window.__resumeBotTurnstileRemovals=(window.__resumeBotTurnstileRemovals||0)+1;}};`,
   }));
 }
 
@@ -164,10 +164,21 @@ test('starter question streams inert text and a public source card', async ({ pa
 
 test('a second question gets a fresh Turnstile callback and reaches the API', async ({ page }) => {
   let chatRequests = 0;
-  page.on('request', (request) => { if (request.url() === apiUrl) chatRequests += 1; });
+  const tokens = [];
+  page.on('request', (request) => {
+    if (request.url() !== apiUrl) return;
+    chatRequests += 1;
+    tokens.push(request.postDataJSON().turnstile_token);
+  });
   await installApiStub(page);
   await page.goto('/');
+  await page.evaluate(() => {
+    window.__resumeBotTestTimings = [];
+    window.addEventListener('resume-bot:timing', (event) => window.__resumeBotTestTimings.push(event.detail));
+  });
   await openChat(page);
+  await expect.poll(() => page.evaluate(() => window.__resumeBotTurnstileExecutions || 0)).toBe(1);
+  expect(chatRequests).toBe(0);
   await page.locator('#resume-bot-input').fill('First question');
   await page.getByRole('button', { name: 'Ask', exact: true }).click();
   await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
@@ -175,7 +186,15 @@ test('a second question gets a fresh Turnstile callback and reaches the API', as
   await page.getByRole('button', { name: 'Ask', exact: true }).click();
   await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
   expect(chatRequests).toBe(2);
-  expect(await page.evaluate(() => window.__resumeBotTurnstileRenders)).toBe(2);
+  expect(tokens).toEqual(['TEST_1', 'TEST_2']);
+  expect(await page.evaluate(() => window.__resumeBotTurnstileRenders)).toBe(1);
+  expect(await page.evaluate(() => window.__resumeBotTurnstileExecutions)).toBeGreaterThanOrEqual(2);
+  const timings = await page.evaluate(() => window.__resumeBotTestTimings);
+  expect(timings).toHaveLength(2);
+  for (const timing of timings) {
+    expect(Object.keys(timing).sort()).toEqual(['post_token_ms', 'total_ms', 'turnstile_ms']);
+    expect(Object.values(timing).every((value) => Number.isFinite(value) && value >= 0)).toBeTruthy();
+  }
 });
 
 test('playful processing messages rotate visibly before streaming starts', async ({ page }) => {
@@ -214,6 +233,40 @@ test('clear chat cancels pending verification and immediately restores the compo
   await expect(page.locator('#resume-bot-status')).toHaveText('Chat cleared.');
   await expect(page.locator('#resume-bot-input')).toBeFocused();
 });
+
+for (const lateCallback of ['callback', 'error-callback', 'expired-callback']) {
+  test(`a late Turnstile ${lateCallback} after Clear cannot poison the next Ask`, async ({ page }) => {
+    const tokens = [];
+    await page.route(turnstileUrl, (route) => route.fulfill({
+      contentType: 'application/javascript',
+      body: `window.__resumeBotTurnstileOptions=[];window.turnstile={render:function(_,options){window.__resumeBotTurnstileOptions.push(options);return window.__resumeBotTurnstileOptions.length;},execute:function(){},reset:function(){},remove:function(){}};`,
+    }));
+    await page.route(apiUrl, (route) => {
+      tokens.push(route.request().postDataJSON().turnstile_token);
+      return route.fulfill({ contentType: 'text/event-stream', body: successfulSse() });
+    });
+    await page.goto('/');
+    await openChat(page);
+    await page.locator('#resume-bot-input').fill('Cancel this verification');
+    await page.getByRole('button', { name: 'Ask', exact: true }).click();
+    await page.getByRole('button', { name: 'Clear chat' }).click();
+
+    await page.locator('#resume-bot-input').fill('Fresh after stale callback');
+    await page.getByRole('button', { name: 'Ask', exact: true }).click();
+    await expect(page.locator('#resume-bot-status')).toHaveText('Working on your question…');
+    await page.evaluate((callbackName) => {
+      const callback = window.__resumeBotTurnstileOptions[0][callbackName];
+      callbackName === 'callback' ? callback('STALE') : callback();
+    }, lateCallback);
+    await page.waitForTimeout(30);
+    expect(tokens).toEqual([]);
+    await expect(page.locator('#resume-bot-status')).toHaveText('Working on your question…');
+
+    await page.evaluate(() => window.__resumeBotTurnstileOptions[1].callback('FRESH'));
+    await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
+    expect(tokens).toEqual(['FRESH']);
+  });
+}
 
 test('unsafe credential requests display the public refusal and remain usable', async ({ page }) => {
   await page.route(apiUrl, (route) => route.fulfill({
@@ -388,7 +441,8 @@ test('terminal failures retain turn-owned Retry and recover with a fresh Turnsti
   await expect(failed.getByRole('button', { name: 'Retry' })).toBeVisible();
   await failed.getByRole('button', { name: 'Retry' }).click();
   await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
-  expect(await page.evaluate(() => window.__resumeBotTurnstileRenders)).toBe(2);
+  expect(await page.evaluate(() => window.__resumeBotTurnstileRenders)).toBe(1);
+  expect(await page.evaluate(() => window.__resumeBotTurnstileExecutions)).toBeGreaterThanOrEqual(2);
 });
 
 test('truncated streams and ungrounded done results retain a recoverable terminal turn', async ({ page }) => {
