@@ -22,3 +22,8 @@ $RECYCLE.BIN/
 .nfs*
 .omc/
 .omx/
+
+# Local browser-test dependencies and artifacts
+node_modules/
+test-results/
+playwright-report/
