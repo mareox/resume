@@ -27,3 +27,7 @@ $RECYCLE.BIN/
 node_modules/
 test-results/
 playwright-report/
+
+# Generated Playwright CLI captures
+/.playwright-cli/
+/output/playwright/
