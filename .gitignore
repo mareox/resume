@@ -31,3 +31,9 @@ playwright-report/
 # Generated Playwright CLI captures
 /.playwright-cli/
 /output/playwright/
+
+# agent-hygiene: portable cache ignores (2026-08-27, codex-reviewed)
+**/.pytest_cache/
+**/.ruff_cache/
+**/.mypy_cache/
+**/.venv/
