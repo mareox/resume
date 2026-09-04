@@ -35,4 +35,5 @@ Automatic via GitHub Actions on push to `main`. No build step — the workflow u
 ## Related
 
 - **Homelab Journal:** `~/GIT/homelab-journal/` — linked from hero, about, projects, and footer
-- **Resume source:** `U:\Users\MareoX\Documents\Resume\2026\resume.json`
+- **Public resume source:** `resume.json`; render with `uv run --with weasyprint python generate_pdf.py` (macOS: set `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib`). Updates both public PDF paths. CareerOS remains read-only evidence.
+- **Assistant corpus:** `../homelab-infra/atlas/resume-bot/scripts/build_corpus.py` extracts six public sections; rebuild and deploy its `data/corpus.json` when those sections change.

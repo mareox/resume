@@ -47,3 +47,6 @@ credentials
 *.pem
 token
 *.token
+
+# Generated print preview
+/output/pdf/

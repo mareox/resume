@@ -1,0 +1,238 @@
+{
+  "selectedTemplate": 2,
+  "headings": {
+    "projects": "Projects",
+    "education": "Education",
+    "work": "Experience",
+    "skills": "Technical Skills",
+    "awards": "Certifications"
+  },
+  "basics": {
+    "name": "Mario Sanchez",
+    "email": "mareox@gmail.com",
+    "phone": "510-371-3756",
+    "website": "linkedin.com/in/mareox",
+    "location": {
+      "address": "Bay Area, CA"
+    },
+    "summary": "Sr. Professional Services Consultant, AI Security at Palo Alto Networks with 15+ years in IT and network security, including 9+ years spanning Technical Support, Customer Success, and Professional Services. Started the AI Security consulting role in July 2026. Previously embedded as the dedicated technical advisor for one of PANW's largest global SASE engagements (100,000+ users, 34+ regions across AWS, Azure, and GCP environments). Combines deep PAN-OS and Prisma Access expertise with hands-on Python automation, AI-enhanced engineering workflows, and security research including OWASP Top 10 for LLMs."
+  },
+  "education": [
+    {
+      "location": "Santa Clara, CA",
+      "area": "Information Technology",
+      "institution": "Mission College",
+      "studyType": "AA Network Administration",
+      "endDate": "2015"
+    }
+  ],
+  "work": [
+    {
+      "company": "Palo Alto Networks",
+      "position": "Sr. Professional Services Consultant, AI Security",
+      "startDate": "July 2026",
+      "endDate": "Present",
+      "highlights": []
+    },
+    {
+      "company": "Palo Alto Networks",
+      "location": "Santa Clara, CA (Embedded at Fortune 500 Clients)",
+      "website": "",
+      "startDate": "December 2020",
+      "endDate": "July 2026",
+      "highlights": [
+        "Led global Prisma Access deployment for Fortune 500 organization with 100,000+ users across 34+ regions, serving as the single technical bridge between customer leadership, PANW engineering, TAC, and partner teams with 99.9% service availability.",
+        "Developed Python automation tools using PAN-OS SDK and Strata Cloud Manager API that reduced DNS configuration management from 25-35 hours to under 1 minute across 18 global regions, eliminating 2,700+ manual entries with 100% accuracy.",
+        "Pioneered AI-enhanced engineering workflows using Large Language Model tools (Claude, Gemini) for configuration review, technical analysis, and automated reporting, saving 5-10 hours/week with practices requested by management for company-wide adoption. Evaluated data leakage risks and implemented guardrails for secure AI tool usage in enterprise context.",
+        "Led GlobalProtect client rollout expansion from 2,000 to 52,000+ users with 2,500 users/day peak deployment, resolving critical cross-platform authentication and captive portal issues through hands-on field testing and structured troubleshooting methodologies.",
+        "Engineered strategic China tenant architecture pivot, migrating mobile users to global tenant via Hong Kong/Singapore. Proactively identified BGP timer misconfigurations and DNS session issues before they caused outages for thousands of users.",
+        "Built enterprise Python automation tools including SCM SDK address group converter with OAuth 2.0 authentication, batch processing at 200-400 objects/minute, and reusable delivery templates adopted across global PS engagements.",
+        "Identified and remediated 4,000 disabled rules, 1,100+ unused services, and 600+ unused address objects in Panorama, building reusable documentation and cleanup methodologies adopted across engagements.",
+        "Drove early adoption of SCM cloning tool and Prisma Access proxy features, providing direct product feedback to Engineering that influenced feature prioritization and resolved 3 critical field-reported defects."
+      ],
+      "position": "Resident Engineer, Network Security & SASE",
+      "officialPosition": "Extended Expertise Consultant (Professional Services)"
+    },
+    {
+      "company": "Palo Alto Networks",
+      "startDate": "August 2019",
+      "endDate": "December 2020",
+      "location": "Santa Clara, CA",
+      "highlights": [
+        "Drove 40% Prisma Access adoption across 20 enterprise clients through solutions architecture, cloud security assessments on AWS and Azure environments, and deployment of cloud-native SASE solutions.",
+        "Led migration of 10,000+ L4/L7 proxy rules to Palo Alto NGFW explicit proxy and security policies, reducing policy conflicts by 60% and boosting network performance by 20%.",
+        "Designed Zero Trust architectures including secure web gateways, network segmentation, and advanced packet inspection for multinational enterprise networks across public cloud platforms.",
+        "Delivered technical presentations and quarterly business reviews to C-level stakeholders across 20 accounts, directly influencing 3 enterprise-wide security platform renewals."
+      ],
+      "position": "Customer Success Engineer, Network Security (Prisma Access)"
+    },
+    {
+      "company": "Palo Alto Networks",
+      "highlights": [
+        "Provided customer-facing technical support for cloud-based NGFW firewalls, Panorama, and early Prisma Access platform, troubleshooting routing, VPN, and security issues across enterprise deployments.",
+        "Hardened authentication implementations with SAML, SSO, and MFA integrations (Okta, Azure AD) for enterprise customers on AWS, Azure, and GCP cloud platforms.",
+        "Collaborated with engineering teams on complex technical escalations, contributing field insights that informed product development and improvement cycles."
+      ],
+      "position": "Technical Support Engineer (Prisma Access)",
+      "location": "Santa Clara, CA",
+      "startDate": "July 2017",
+      "endDate": "August 2019"
+    },
+    {
+      "company": "Aeris Communications",
+      "position": "Network Support Engineer (Tier 2)",
+      "location": "Santa Clara, CA",
+      "startDate": "March 2015",
+      "endDate": "July 2017",
+      "highlights": [
+        "Diagnosed and remediated network security issues in site-to-site IPsec VPNs using Wireshark and packet capture analysis, strengthening data center network defenses.",
+        "Analyzed TCP/UDP, DHCP, and DNS traffic to identify and resolve vulnerabilities, improving network reliability for enterprise production environments.",
+        "Deployed and configured VPN appliances (ASA 5500, AnyConnect, Cisco 4451) and monitored enterprise production networks."
+      ]
+    },
+    {
+      "company": "eFX-Computer",
+      "position": "IT Consultant",
+      "location": "San Leandro, CA",
+      "startDate": "January 2010",
+      "endDate": "March 2015",
+      "highlights": [
+        "Provided technical support and deployed network solutions for small businesses, including Windows/Linux servers and virtualization (Hyper-V)."
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "name": "Security & Cloud Platforms",
+      "keywords": [
+        "Prisma Access (SASE/SSE)",
+        "Prisma Cloud",
+        "PAN-OS NGFW",
+        "Panorama",
+        "GlobalProtect",
+        "ZTNA 2.0",
+        "Strata Cloud Manager",
+        "Zero Trust Architecture",
+        "AWS",
+        "Azure",
+        "GCP",
+        "SSL/TLS Decryption",
+        "Network Segmentation"
+      ]
+    },
+    {
+      "name": "AI/ML Security & Automation",
+      "keywords": [
+        "Large Language Models (LLM Security)",
+        "OWASP Top 10 for LLMs",
+        "Prompt Injection / Data Leakage / Model Poisoning",
+        "LLM Inference (Ollama/PyTorch)",
+        "AI Agent Workflows",
+        "AI Security Risk Assessment"
+      ]
+    },
+    {
+      "name": "Programming & IaC",
+      "keywords": [
+        "Python (PAN-OS SDK, SCM SDK, Pydantic, OAuth 2.0)",
+        "REST API Automation",
+        "Infrastructure-as-Code (Ansible, Docker Compose)",
+        "Terraform (learning)",
+        "CI/CD (Semaphore)"
+      ]
+    },
+    {
+      "name": "Infrastructure & Containers",
+      "keywords": [
+        "Docker",
+        "Podman",
+        "Proxmox VE",
+        "Linux (Debian/Ubuntu)",
+        "LXC Containers",
+        "Cloudflare Tunnel/Access"
+      ]
+    },
+    {
+      "name": "Monitoring & SecOps",
+      "keywords": [
+        "Graylog/OpenSearch (SIEM)",
+        "Prometheus/Grafana",
+        "Wazuh XDR",
+        "CIS Benchmarks",
+        "SNMP/Syslog"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "AI-Integrated Security Infrastructure Lab",
+      "keywords": [
+        "Proxmox",
+        "PAN-OS",
+        "Docker",
+        "Python",
+        "Wazuh XDR",
+        "Ollama/LLM",
+        "Prometheus/Grafana"
+      ],
+      "date": "2023 - Present",
+      "url": "",
+      "description": "Architect and operate a 50+ service security research environment across a 4-node Proxmox cluster with 50+ VMs/containers, PA-440 NGFW (PAN-OS 11.2), and defense-in-depth security across 6 VLANs. Deploy local Large Language Model inference (Ollama/PyTorch) and AI agent pipelines for security research, including testing OWASP Top 10 LLM threats (prompt injection, data leakage, model poisoning). Implement Ansible-driven infrastructure-as-code with Docker container orchestration and Semaphore CI/CD. Manage centralized SIEM (Graylog + OpenSearch), XDR (Wazuh with CIS compliance), and Prometheus/Grafana observability."
+    },
+    {
+      "name": "Prisma Access DNS Automation Engine",
+      "keywords": [
+        "Python",
+        "Prisma Access API",
+        "DNS",
+        "Automation"
+      ],
+      "date": "2025",
+      "url": "",
+      "description": "Designed and deployed Python automation for DNS configuration management across 18 global Prisma Access regions, managing 150 internal domains simultaneously. Reduced deployment time from 25-35 hours to under 1 minute (99.9% reduction), eliminating 2,700+ individual manual entries and potential human error."
+    },
+    {
+      "name": "SCM Address Group Converter",
+      "keywords": [
+        "Python",
+        "PAN-OS SCM SDK",
+        "OAuth 2.0",
+        "API Automation"
+      ],
+      "date": "2025",
+      "url": "https://github.com/mareox/panw-script_group-addr-static-to-dynamic",
+      "description": "Built enterprise Python tool using Strata Cloud Manager SDK to convert static address groups to dynamic tag-based groups at scale. Features OAuth 2.0 authentication, intelligent batch processing (200-400 objects/min), comprehensive backup/rollback, and exponential backoff retry logic."
+    }
+  ],
+  "awards": [
+    {
+      "title": "PCNSE - Palo Alto Networks Certified Network Security Engineer",
+      "date": "2024 (originally 2019)",
+      "summary": ""
+    },
+    {
+      "title": "CCNA CyberOps (Cisco)",
+      "date": "2018",
+      "summary": ""
+    },
+    {
+      "title": "CCNA Security (Cisco)",
+      "date": "2017",
+      "summary": ""
+    },
+    {
+      "title": "CCNA Routing & Switching (Cisco)",
+      "date": "2016",
+      "summary": ""
+    }
+  ],
+  "sections": [
+    "templates",
+    "profile",
+    "projects",
+    "work",
+    "skills",
+    "education",
+    "awards"
+  ]
+}
