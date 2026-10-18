@@ -466,6 +466,32 @@ test('truncated streams and ungrounded done results retain a recoverable termina
   await expect(redirect.getByRole('button', { name: 'Retry' })).toBeVisible();
 });
 
+for (const [language, question, answer] of [
+  ['English', 'Tell me a debugging joke.', 'Debugging: making yesterday’s brilliant idea testify under oath.'],
+  ['Mexican Spanish', 'No manches, ¿Mario anda de albañil o qué onda?', 'Claro, el cemento también tiene dependencias que nadie quiere actualizar.'],
+]) {
+  test(`uncited ${language} banter completes without resume evidence or safety claims`, async ({ page }) => {
+    await page.route(apiUrl, (route) => route.fulfill({ contentType: 'text/event-stream', body: sse([
+      { event: 'meta', data: { conversation_id: 'banter' } },
+      { event: 'security', data: { input: 'allowed', turnstile: 'passed', retrieval: 'public_resume', output: 'passed' } },
+      { event: 'sources', data: { items: [] } },
+      { event: 'delta', data: { text: answer } },
+      { event: 'done', data: { grounded: false, response_kind: 'banter', source_ids: [] } },
+    ]) }));
+    await page.goto('/');
+    await openChat(page);
+    await page.getByRole('button', { name: 'AI Security Lab' }).click();
+    await page.locator('#resume-bot-input').fill(question);
+    await page.getByRole('button', { name: 'Ask', exact: true }).click();
+    await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
+    const reply = page.locator('.resume-bot-message--assistant').last();
+    await expect(reply.locator('.resume-bot-answer-text')).toHaveText(answer);
+    await expect(reply.locator('.resume-bot-turn-evidence, .resume-bot-source, .resume-bot-security')).toHaveCount(0);
+    await expect(reply.getByRole('button', { name: 'Copy answer' })).toBeVisible();
+    await expect(reply.getByRole('button', { name: 'Retry' })).toBeVisible();
+  });
+}
+
 test('hostile suggestions and invalid security events cannot create trust controls', async ({ page }) => {
   await page.route(apiUrl, (route) => route.fulfill({ contentType: 'text/event-stream', body: sse([
     { event: 'meta', data: { conversation_id: 'hostile' } },
