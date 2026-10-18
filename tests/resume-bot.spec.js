@@ -98,6 +98,23 @@ async function openChat(page) {
   await expect(page.locator('#resume-bot-input')).toBeFocused();
 }
 
+test('provider disclosure is visible before either assistant entry sends a question', async ({ page }) => {
+  let chatRequests = 0;
+  page.on('request', (request) => { if (request.url() === apiUrl) chatRequests += 1; });
+  const disclosure = 'Questions and recent conversation may be sent to OpenAI or processed by a local model. Don’t share private information.';
+  await page.goto('/');
+  await expect(page.locator('#ask-ai .resume-bot-shell .resume-bot-disclosure')).toHaveText(disclosure);
+  await expect(page.locator('.resume-bot-intro')).toContainText('Professional answers use only this public resume.');
+  for (const opener of ['launcher', 'section']) {
+    await openAssistant(page, opener);
+    await expect(page.locator('.resume-bot-dialog-eyebrow')).toHaveText('// public-resume assistant');
+    await expect(page.locator('#resume-bot-dialog-disclosure')).toContainText(disclosure);
+    await expect(page.locator('#resume-bot-dialog-disclosure')).toBeVisible();
+    expect(chatRequests).toBe(0);
+    await page.keyboard.press('Escape');
+  }
+});
+
 test('floating sentinel opens an optional guided career path before chat', async ({ page }) => {
   let chatRequests = 0;
   page.on('request', (request) => { if (request.url() === apiUrl) chatRequests += 1; });
