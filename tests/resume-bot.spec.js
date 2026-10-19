@@ -509,6 +509,122 @@ for (const [language, question, answer] of [
   });
 }
 
+test('fenced ASCII preserves whitespace during streaming, completion, and copy', async ({ page }) => {
+  const art = '       _\n      | |\n   ___| |___\n  (   | |   )\n   (_______)';
+  const partialArt = art.slice(0, art.indexOf('\n   ___'));
+  const opening = sse([
+    { event: 'meta', data: { conversation_id: 'ascii-stream' } },
+    { event: 'sources', data: { items: [] } },
+    { event: 'delta', data: { text: 'Tanto currículum para eso.\n\n```text\n' + partialArt } },
+  ]);
+  const ending = sse([
+    { event: 'delta', data: { text: art.slice(partialArt.length) + '\n```\n\n**Seguimos.**\n\n- Public professional answers still work.' } },
+    { event: 'done', data: { grounded: false, response_kind: 'banter', source_ids: [] } },
+  ]);
+  await page.addInitScript(({ endpoint, opening, ending }) => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: {
+      writeText: async (text) => { window.__resumeBotCopied = text; },
+    } });
+    const nativeFetch = window.fetch.bind(window);
+    const encoder = new TextEncoder();
+    window.fetch = async (input, init) => {
+      if ((typeof input === 'string' ? input : input.url) !== endpoint) return nativeFetch(input, init);
+      return new Response(new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode(opening));
+          window.__resumeBotFinishAscii = () => { controller.enqueue(encoder.encode(ending)); controller.close(); };
+        },
+      }), { headers: { 'Content-Type': 'text/event-stream' } });
+    };
+  }, { endpoint: apiUrl, opening, ending });
+  await page.goto('/');
+  await openChat(page);
+  await page.locator('#resume-bot-input').fill('Personal bait in Spanish');
+  await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  const reply = page.locator('.resume-bot-message--assistant').last();
+  const pre = reply.locator('pre');
+  await expect(pre).toBeVisible();
+  expect(await pre.textContent()).toBe(partialArt);
+  await expect(page.locator('#resume-bot-stop')).toBeVisible();
+  await page.evaluate(() => window.__resumeBotFinishAscii());
+  await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
+  expect(await pre.locator('code').textContent()).toBe(art);
+  await expect(reply.getByRole('strong')).toHaveText('Seguimos.');
+  await expect(reply.getByRole('listitem')).toHaveText('Public professional answers still work.');
+  await expect(reply.locator('.resume-bot-turn-evidence, .resume-bot-source, .resume-bot-security')).toHaveCount(0);
+  await reply.getByRole('button', { name: 'Copy answer' }).click();
+  const copied = await page.evaluate(() => window.__resumeBotCopied);
+  expect(copied).toContain(art);
+  expect(copied).toContain('Seguimos.');
+  expect(copied).not.toContain('```');
+  await expect(page.locator('#resume-bot-status')).toHaveText('Answer copied.');
+});
+
+for (const [kind, answer, codeText] of [
+  ['unclosed', 'Before.\r\n\r\n```text\r\n  <img src=x onerror=window.__resumeBotXss=true>\r\n\r\n    **literal**\r\n  ```not-a-close\r\n\ttrailing  ', '  <img src=x onerror=window.__resumeBotXss=true>\n\n    **literal**\n  ```not-a-close\n\ttrailing  '],
+  ['unsupported', '```html\n<img src=x onerror=window.__resumeBotXss=true>\n<script>window.__resumeBotXss=true</script>\n```broken', null],
+]) {
+  test(`fenced text keeps ${kind} fence payloads inert`, async ({ page }) => {
+    await page.route(apiUrl, (route) => route.fulfill({ contentType: 'text/event-stream', body: sse([
+      { event: 'meta', data: { conversation_id: 'ascii-inert' } },
+      { event: 'sources', data: { items: [] } },
+      { event: 'delta', data: { text: answer } },
+      { event: 'done', data: { grounded: false, response_kind: 'banter', source_ids: [] } },
+    ]) }));
+    await page.goto('/');
+    await openChat(page);
+    await page.locator('#resume-bot-input').fill('Renderer boundary check');
+    await page.getByRole('button', { name: 'Ask', exact: true }).click();
+    await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
+    const reply = page.locator('.resume-bot-message--assistant').last();
+    if (codeText === null) await expect(reply.locator('pre')).toHaveCount(0);
+    else expect(await reply.locator('pre code').textContent()).toBe(codeText);
+    await expect(reply).toContainText('<img src=x onerror=window.__resumeBotXss=true>');
+    await expect(reply.locator('img, script, strong, a')).toHaveCount(0);
+    expect(await page.evaluate(() => window.__resumeBotXss)).toBeUndefined();
+  });
+}
+
+test('an empty fenced response retains the controlled fallback', async ({ page }) => {
+  await page.route(apiUrl, (route) => route.fulfill({ contentType: 'text/event-stream', body: sse([
+    { event: 'meta', data: { conversation_id: 'ascii-empty' } },
+    { event: 'sources', data: { items: [] } },
+    { event: 'delta', data: { text: '```text\n  \t\n```' } },
+    { event: 'done', data: { grounded: false, response_kind: 'redirect', source_ids: [] } },
+  ]) }));
+  await page.goto('/');
+  await openChat(page);
+  await page.locator('#resume-bot-input').fill('Empty reply');
+  await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.locator('#resume-bot-status')).toHaveText('Request safely declined.');
+  const answer = page.locator('.resume-bot-answer-text');
+  await expect(answer).toHaveText('I could not ground an answer in the public resume. Try a more specific question about experience, projects, skills, or certifications.');
+  await expect(answer.locator('pre')).toHaveCount(0);
+});
+
+test('wide fenced ASCII scrolls inside the answer without widening the dialog', async ({ page }) => {
+  const art = '  [' + '-'.repeat(180) + ']  \n    spaces stay aligned';
+  await page.route(apiUrl, (route) => route.fulfill({ contentType: 'text/event-stream', body: sse([
+    { event: 'meta', data: { conversation_id: 'ascii-wide' } },
+    { event: 'sources', data: { items: [] } },
+    { event: 'delta', data: { text: 'Wide illustration.\n\n```\n' + art + '\n```' } },
+    { event: 'done', data: { grounded: false, response_kind: 'banter', source_ids: [] } },
+  ]) }));
+  await page.goto('/');
+  await openChat(page);
+  await page.locator('#resume-bot-input').fill('Wide ASCII illustration');
+  await page.getByRole('button', { name: 'Ask', exact: true }).click();
+  await expect(page.locator('#resume-bot-status')).toHaveText('Answer complete.');
+  const pre = page.locator('.resume-bot-answer-text pre');
+  expect(await pre.textContent()).toBe(art);
+  expect(await pre.evaluate((node) => node.scrollWidth > node.clientWidth)).toBeTruthy();
+  for (const selector of ['#resume-bot-dialog', '#resume-bot-transcript', '.resume-bot-message--assistant']) {
+    expect(await page.locator(selector).evaluate((node) => node.scrollWidth <= node.clientWidth)).toBeTruthy();
+  }
+  await pre.focus();
+  await expect(pre).toBeFocused();
+});
+
 test('hostile suggestions and invalid security events cannot create trust controls', async ({ page }) => {
   await page.route(apiUrl, (route) => route.fulfill({ contentType: 'text/event-stream', body: sse([
     { event: 'meta', data: { conversation_id: 'hostile' } },

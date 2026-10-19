@@ -11,12 +11,14 @@
 .resume-bot-mode, .resume-bot-starter, .resume-bot-button, .resume-bot-challenge { min-height: 44px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; font: inherit; font-size: 0.88rem; font-weight: 600; padding: 0.55rem 0.8rem; transition: border-color 0.2s, background 0.2s, color 0.2s; }
 .resume-bot-mode[aria-pressed="true"], .resume-bot-button--primary { background: var(--accent-red-dim); border-color: var(--accent-red); color: var(--text-primary); }
 .resume-bot-starter:hover, .resume-bot-mode:hover, .resume-bot-button:hover, .resume-bot-challenge:hover { border-color: var(--accent-blue); color: var(--text-primary); }
-.resume-bot-mode:focus-visible, .resume-bot-starter:focus-visible, .resume-bot-button:focus-visible, .resume-bot-challenge:focus-visible, .resume-bot-input:focus-visible, .resume-bot-source:focus-visible, .resume-bot-launcher:focus-visible, .resume-bot-close:focus-visible, .resume-bot-tour-source:focus-visible { outline: 3px solid var(--accent-yellow); outline-offset: 3px; }
+.resume-bot-mode:focus-visible, .resume-bot-starter:focus-visible, .resume-bot-button:focus-visible, .resume-bot-challenge:focus-visible, .resume-bot-input:focus-visible, .resume-bot-answer-text pre:focus-visible, .resume-bot-source:focus-visible, .resume-bot-launcher:focus-visible, .resume-bot-close:focus-visible, .resume-bot-tour-source:focus-visible { outline: 3px solid var(--accent-yellow); outline-offset: 3px; }
 .resume-bot-transcript { display: grid; gap: 0.75rem; min-height: 128px; max-height: 360px; overflow-y: auto; padding: 1rem 1rem 2rem; }
-.resume-bot-message { max-width: min(100%, 70ch); border-radius: 10px; padding: 0.75rem 0.9rem; white-space: pre-wrap; }
+.resume-bot-message { min-width: 0; max-width: min(100%, 70ch); border-radius: 10px; padding: 0.75rem 0.9rem; white-space: pre-wrap; }
 .resume-bot-message--assistant { background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); }
 .resume-bot-message--thinking { border-color: var(--border-glow); color: var(--accent-blue); font-family: var(--font-mono); font-size: 0.82rem; }
 .resume-bot-message--assistant p, .resume-bot-message--assistant ol, .resume-bot-message--assistant ul { margin: 0; }
+.resume-bot-answer-text pre { font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.3; margin: 0.75rem 0; max-width: 100%; overflow-x: auto; white-space: pre; }
+.resume-bot-answer-text pre code { font: inherit; }
 .resume-bot-message--assistant p + p, .resume-bot-message--assistant p + ol, .resume-bot-message--assistant p + ul, .resume-bot-message--assistant ol + p, .resume-bot-message--assistant ul + p { margin-top: 0.75rem; }
 .resume-bot-message--assistant ol, .resume-bot-message--assistant ul { display: grid; gap: 0.7rem; line-height: 1.5; padding-left: 1.35rem; }
 .resume-bot-message--user { background: var(--accent-red-dim); border: 1px solid var(--border-glow); color: var(--text-primary); justify-self: end; }
