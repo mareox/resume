@@ -12,6 +12,10 @@ static/                 ← favicon + resume PDF
 .github/workflows/      ← GitHub Pages deploy on push to main
 ```
 
+## AI project evidence
+
+The public summary, AI section, and project cards highlight the read-only Python/FastMCP infrastructure server and Gilfoyle AI operations agent. These are explicitly personal projects, separate from customer delivery. The public resume JSON feeds both downloadable PDF paths. The separately hosted assistant uses a six-section public-only corpus rebuilt from this HTML.
+
 ## Stack
 
 - Pure HTML + CSS + vanilla JS

@@ -11,25 +11,24 @@
     "name": "Mario Sanchez",
     "email": "mareox@gmail.com",
     "phone": "510-371-3756",
-    "website": "linkedin.com/in/mareox",
+    "website": "mareox.com",
     "location": {
       "address": "Bay Area, CA"
     },
-    "summary": "Sr. Professional Services Consultant, AI Security at Palo Alto Networks with 9+ years of customer-facing experience spanning Technical Support, Customer Success, Solutions Architecture, and Professional Services, and a Senior Network Security Engineer background. Started the AI Security consulting role in March 2026. Previously embedded as the dedicated technical advisor for one of PANW's largest global SASE engagements (100,000+ users, 34+ regions across AWS, Azure, and GCP environments). Pioneer in applying Large Language Model tools to security operations with documented productivity gains adopted at the team level. Hands-on Python and Terraform automation, AI/ML security research including OWASP Top 10 for LLMs (prompt injection, data leakage, model poisoning), and deep expertise across PAN-OS, Prisma Access, Prisma Cloud, and NGFW platforms. Seeking to leverage consulting experience and AI-enhanced engineering skills to deliver AI Model Scanning and AI Red Teaming engagements at enterprise scale."
+    "summary": "Staff Professional Services Consultant, AI Security at Palo Alto Networks with 15+ years in IT and cybersecurity and 9+ years of customer-facing delivery at PANW. Build AI security integrations, self-hosted AI agents, and Model Context Protocol (MCP) tooling for infrastructure investigation and operational workflows. Created a read-only Python MCP server supporting 25 tools across ten infrastructure backends. Combine hands-on AI engineering with enterprise SASE delivery supporting 100,000+ users across 34+ regions."
   },
   "education": [
     {
       "location": "Santa Clara, CA",
       "area": "Information Technology",
       "institution": "Mission College",
-      "studyType": "AA Network Administration",
-      "endDate": "2015"
+      "studyType": "Coursework in Network Administration (no degree earned)"
     }
   ],
   "work": [
     {
       "company": "Palo Alto Networks",
-      "position": "Sr. Professional Services Consultant, AI Security (Prisma AIRS)",
+      "position": "Staff Professional Services Consultant, AI Security (Prisma AIRS)",
       "location": "Santa Clara, CA",
       "startDate": "March 2026",
       "endDate": "Present",
@@ -41,7 +40,7 @@
     },
     {
       "company": "Palo Alto Networks",
-      "position": "Sr. Network Security Engineer (Prisma Access, SSE)",
+      "position": "Sr II Network Security Engineer (Prisma Access, SSE)",
       "location": "Santa Clara, CA (Embedded at Fortune 500 Clients)",
       "startDate": "Dec 2020",
       "endDate": "February 2026",
@@ -59,12 +58,12 @@
     },
     {
       "company": "Palo Alto Networks",
-      "position": "Customer Engineer, Network Security (Prisma Access, SSE)",
+      "position": "Sr. Network Security (Prisma Access, SSE)",
       "location": "Santa Clara, CA",
       "startDate": "Aug 2019",
       "endDate": "Dec 2020",
       "highlights": [
-        "Drove 40% Prisma Access adoption across 20 enterprise clients through solutions architecture, cloud security assessments on AWS and Azure environments, and deployment of cloud-native SASE solutions",
+        "Guided 20 enterprise clients through Prisma Access architecture, AWS and Azure security assessments, and SASE deployments.",
         "Led migration of 10,000+ L4/L7 proxy rules to Palo Alto NGFW explicit proxy and security policies, reducing policy conflicts by 60% and boosting network performance by 20%",
         "Designed Zero Trust architectures including secure web gateways, network segmentation, and advanced packet inspection for multinational enterprise networks across public cloud platforms",
         "Delivered operational presentations and quarterly business reviews to executive stakeholders, aligning security strategies with enterprise digital transformation objectives"
@@ -105,6 +104,9 @@
     {
       "name": "AI/ML Security & Automation",
       "keywords": [
+        "Model Context Protocol (MCP)",
+        "AI Agent Workflows",
+        "Read-only Tool Design",
         "Large Language Models (LLM Security)",
         "OWASP Top 10 for LLMs",
         "Prompt Injection / Data Leakage / Model Poisoning",
@@ -118,7 +120,7 @@
     {
       "name": "Programming & IaC",
       "keywords": [
-        "Python (PAN-OS SDK, SCM SDK, Pydantic, OAuth 2.0)",
+        "Python (PAN-OS SDK, SCM SDK, FastMCP, Pydantic, OAuth 2.0)",
         "Terraform",
         "REST API Automation",
         "Infrastructure-as-Code (Ansible, Docker Compose)",
@@ -150,43 +152,45 @@
   ],
   "projects": [
     {
-      "name": "AI-Integrated Security Infrastructure Lab",
+      "name": "Homelab MCP Server (Personal Project)",
+      "keywords": [
+        "Python",
+        "FastMCP",
+        "Model Context Protocol (MCP)",
+        "Read-only Tools",
+        "REST APIs"
+      ],
+      "date": "2026 to Present",
+      "url": "",
+      "description": "Built a Python/FastMCP server supporting 25 read-only tools and 15 documentation resources across ten infrastructure backends, including PAN-OS, Proxmox, Pi-hole, Prometheus, Graylog, and Semaphore, for AI-assisted troubleshooting. Implemented input validation, TLS verification, credential redaction, and explicit backend-error reporting; verified real stdio client calls from macOS and Linux."
+    },
+    {
+      "name": "AI Operations Agent (Gilfoyle, Personal Project)",
+      "keywords": [
+        "Hermes",
+        "AI Agents",
+        "MCP Integration",
+        "Service APIs",
+        "Discord",
+        "Operational Memory"
+      ],
+      "date": "2026 to Present",
+      "url": "",
+      "description": "Built and operated a self-hosted AI operations agent using Hermes, service APIs, and read-only MCP queries for alert triage, scheduled infrastructure investigations, and Discord reporting. Added severity-based enrichment, tool-call budgets, alert deduplication, and persistent operational memory to keep investigations bounded and evidence-based."
+    },
+    {
+      "name": "AI Infrastructure Lab (Personal Project)",
       "keywords": [
         "Proxmox",
         "PAN-OS",
         "Docker",
-        "Python",
-        "Wazuh XDR",
-        "Ollama/LLM",
+        "Ollama",
+        "Ansible",
         "Prometheus/Grafana"
       ],
       "date": "2023 to Present",
       "url": "",
-      "description": "Architect and operate a 50+ service security research environment across a 4-node Proxmox cluster with 50+ VMs/containers, PA-440 NGFW (PAN-OS 11.2), and defense-in-depth security across 6 VLANs. Deploy local Large Language Model inference (Ollama/PyTorch) and AI agent pipelines for security research, including testing OWASP Top 10 LLM threats (prompt injection, data leakage, model poisoning) and AI model scanning workflows. Implement Terraform and Ansible-driven infrastructure-as-code with Docker, Kubernetes-compatible container orchestration, and Semaphore CI/CD. Manage centralized SIEM (Graylog + OpenSearch), XDR (Wazuh with CIS compliance), Prometheus/Grafana observability, and MLOps-style automation pipelines."
-    },
-    {
-      "name": "Prisma Access DNS Automation Engine",
-      "keywords": [
-        "Python",
-        "Prisma Access API",
-        "DNS",
-        "Automation"
-      ],
-      "date": "2025",
-      "url": "",
-      "description": "Designed Python automation for DNS configuration management across 18 global Prisma Access regions, managing 150 internal domains simultaneously. Reduced deployment time from 25-35 hours to under 1 minute (99.9% reduction), eliminating 2,700+ individual manual entries and potential human error."
-    },
-    {
-      "name": "SCM Address Group Converter",
-      "keywords": [
-        "Python",
-        "PAN-OS SCM SDK",
-        "OAuth 2.0",
-        "API Automation"
-      ],
-      "date": "2025",
-      "url": "https://github.com/mareox/panw-script_group-addr-static-to-dynamic",
-      "description": "Built enterprise Python tool using Strata Cloud Manager SDK to convert static address groups to dynamic tag-based groups at scale. Features OAuth 2.0 authentication, intelligent batch processing (200-400 objects/min), comprehensive backup/rollback, and exponential backoff retry logic."
+      "description": "Operate a 50+ service personal infrastructure environment across a 4-node Proxmox cluster with PA-440 NGFW, six VLANs, local LLM inference, and containerized services. Manage infrastructure-as-code with Terraform, Ansible, and Docker Compose; maintain Semaphore CI/CD, Graylog/OpenSearch logging, Wazuh XDR, and Prometheus/Grafana observability."
     }
   ],
   "awards": [
