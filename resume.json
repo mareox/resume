@@ -165,7 +165,7 @@
       "description": "Built a Python/FastMCP server supporting 25 read-only tools and 15 documentation resources across ten infrastructure backends, including PAN-OS, Proxmox, Pi-hole, Prometheus, Graylog, and Semaphore, for AI-assisted troubleshooting. Implemented input validation, TLS verification, credential redaction, and explicit backend-error reporting; verified real stdio client calls from macOS and Linux."
     },
     {
-      "name": "AI Operations Agent (Gilfoyle, Personal Project)",
+      "name": "AI Operations Agent (Personal Project)",
       "keywords": [
         "Hermes",
         "AI Agents",
