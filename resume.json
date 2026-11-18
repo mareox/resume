@@ -152,7 +152,7 @@
   ],
   "projects": [
     {
-      "name": "Homelab MCP Server (Personal Project)",
+      "name": "Read-Only Infrastructure MCP Server (Personal Project)",
       "keywords": [
         "Python",
         "FastMCP",
