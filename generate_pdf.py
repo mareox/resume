@@ -148,7 +148,7 @@ def build_html(data: dict) -> str:
             parts.append('<div class="clearfix">')
             url_part = ""
             if p.get("url"):
-                url_part = f' -<a href="{p["url"]}" style="color:#0d47a1;">GitHub</a>'
+                url_part = f' - <a href="{p["url"]}" style="color:#0d47a1;">GitHub</a>'
             parts.append(f'<div><span class="project-title">{p["name"]}</span>{url_part}<span class="project-date">{date_str}</span></div>')
             parts.append("</div>")
             if p.get("description"):
@@ -189,7 +189,7 @@ def build_html(data: dict) -> str:
             area = edu.get("area", "")
             school = edu.get("institution", "")
             loc = edu.get("location", "")
-            parts.append(f'<div class="edu-row"><span class="edu-degree">{degree}</span> -<span class="edu-school">{school}, {loc}</span></div>')
+            parts.append(f'<div class="edu-row"><span class="edu-degree">{degree}</span> - <span class="edu-school">{school}, {loc}</span></div>')
 
     # Certifications
     if data.get("awards"):
